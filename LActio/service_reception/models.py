@@ -1,6 +1,7 @@
 from django.db import models
 
 
+
 # ===========================модуль для отметки повреждений автомобиля=======================
 
 class CarView(models.Model):
