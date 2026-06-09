@@ -3,6 +3,7 @@ from .forms import RepairRequestForm, RepairRequestSearchForm, DamageMarkerForm
 from django.db.models import Q
 from django.contrib.auth.forms import UserCreationForm
 from .models import RepairRequest, WorkType, DamageMarker, CarView, DamageType, User
+from django.contrib.auth.decorators import login_required
 
 
 # ========================================Главная================================
@@ -169,3 +170,38 @@ def request_delete(request, pk):
         return redirect('reception:request_list')
     
     return render(request, 'reception/request_confirm_delete.html', {'repair_request': repair_request})
+
+@login_required
+def my_requests(request):
+    """Мои заявки (только текущего пользователя)"""
+    requests_list = RepairRequest.objects.filter(
+        receptionist=request.user
+    ).order_by('-reception_date', '-reception_time')
+    
+    query = request.GET.get('q')
+    if query:
+        requests_list = requests_list.filter(
+            Q(request_number__icontains=query) |
+            Q(client_name__icontains=query) |
+            Q(license_plate__icontains=query)
+        )
+    
+    context = {
+        'requests_list': requests_list,
+        'query': query,
+    }
+    return render(request, 'service_reception/my_requests.html', context)
+
+def register(request):
+    """Регистрация нового пользователя"""
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, 'Регистрация прошла успешно!')
+            return redirect('service_reception:home')
+    else:
+        form = UserCreationForm()
+    
+    return render(request, 'registration/register.html', {'form': form})

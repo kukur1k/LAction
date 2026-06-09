@@ -48,7 +48,7 @@
                     <td class="data_table_cell">{{ req.car_brand }} {{ req.car_model }}</td>
                     <td class="data_table_cell">{{ req.reception_date|date:"d.m.Y" }}</td>
                     <td class="data_table_cell">
-                        <a href="{% url 'reception:request_detail' req.pk %}" class="btn_primary btn_small">Детали</a>
+                        <a href="{% url 'service_reception:request_detail' req.pk %}" class="btn_primary btn_small">Детали</a>
                     </td>
                 </tr>
                 {% endfor %}
@@ -78,8 +78,8 @@
 
         <div class="main_card">
             <div class="main_card_header">Быстрые действия</div>
-            <a href="{% url 'reception:request_create' %}" class="btn_success btn_block_mb">+ Новая заявка</a>
-            <a href="{% url 'reception:request_list' %}" class="btn_primary btn_block">Все заявки</a>
+            <a href="{% url 'service_reception:request_create' %}" class="btn_success btn_block_mb">+ Новая заявка</a>
+            <a href="{% url 'service_reception:request_list' %}" class="btn_primary btn_block">Все заявки</a>
         </div>
     </div>
 </div>

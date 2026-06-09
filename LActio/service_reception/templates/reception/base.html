@@ -4,21 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}СТО Приёмка авто{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'reception/css/styles.css' %}">
+    <title>{% block title %}LActio{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'service_reception/css/styles.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <nav class="navbar_custom">
         <div class="main_container">
             <div class="flex_between">
-                <a class="navbar_brand" href="{% url 'reception:home' %}">СТО Приёмка авто</a>
+                <a class="navbar_brand" href="{% url 'service_reception:home' %}">СТО Приёмка авто</a>
                 <ul class="navbar_menu">
-                    <li><a class="navbar_link" href="{% url 'reception:home' %}">Главная</a></li>
-                    <li><a class="navbar_link" href="{% url 'reception:request_list' %}">Заявки</a></li>
-                    <li><a class="navbar_link" href="{% url 'reception:request_create' %}">Новая заявка</a></li>
+                    <li><a class="navbar_link" href="{% url 'service_reception:home' %}">Главная</a></li>
+                    <li><a class="navbar_link" href="{% url 'service_reception:request_list' %}">Заявки</a></li>
+                    <li><a class="navbar_link" href="{% url 'service_reception:request_create' %}">Новая заявка</a></li>
                     {% if user.is_authenticated %}
-                    <li><a class="navbar_link" href="{% url 'reception:my_requests' %}">Мои заявки</a></li>
+                    <li><a class="navbar_link" href="{% url 'service_reception:my_requests' %}">Мои заявки</a></li>
                     <li><a class="navbar_link" href="#">{{ user.get_full_name|default:user.username }}</a></li>
                     <li>
                         <form method="post" action="{% url 'logout' %}" style="display: inline;">
@@ -27,7 +27,7 @@
                         </form>
                     </li>
                     {% else %}
-                    <li><a class="navbar_link" href="{% url 'reception:register' %}">Регистрация</a></li>
+                    <li><a class="navbar_link" href="{% url 'service_reception:register' %}">Регистрация</a></li>
                     <li><a class="navbar_link" href="/admin/login/">Вход</a></li>
                     {% endif %}
                 </ul>

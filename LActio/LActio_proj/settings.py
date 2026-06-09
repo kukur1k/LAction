@@ -16,7 +16,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'reception',
+    'service_reception',
 ]
 
 MIDDLEWARE = [
@@ -88,4 +88,4 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = '/admin/login/'
 
-AUTH_USER_MODEL = 'reception.User'
+AUTH_USER_MODEL = 'service_reception.User'

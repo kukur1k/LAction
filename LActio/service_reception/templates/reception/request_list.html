@@ -42,7 +42,7 @@
         </div>
         <div class="search_buttons">
             <button type="submit" class="btn_primary">Найти</button>
-            <a href="{% url 'reception:request_list' %}" class="btn_secondary">Сбросить</a>
+            <a href="{% url 'service_reception:request_list' %}" class="btn_secondary">Сбросить</a>
         </div>
     </form>
 </div>
@@ -78,7 +78,7 @@
                 </td>
                 <td class="data_table_cell">{{ req.receptionist.get_full_name|default:req.receptionist.username }}</td>
                 <td class="data_table_cell">
-                    <a href="{% url 'reception:request_detail' req.pk %}" class="btn_primary btn_small">Детали</a>
+                    <a href="{% url 'service_reception:request_detail' req.pk %}" class="btn_primary btn_small">Детали</a>
                 </td>
             </tr>
             {% endfor %}

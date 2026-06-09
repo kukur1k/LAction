@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
 
 
@@ -105,6 +106,7 @@ class RepairRequest(models.Model):
 
     car_brand = models.CharField(max_length=100)
     car_model = models.CharField(max_length=100)
+    license_plate = models.CharField(max_length=20, blank=True)
 
     vin = models.CharField(max_length=17, blank=True)
     
