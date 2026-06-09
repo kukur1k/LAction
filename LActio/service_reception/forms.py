@@ -1,8 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import User, RepairRequest, WorkType, DamageMarker, CarView, DamageType
-
-
+from django.contrib import messages
+from django.shortcuts import render, get_object_or_404, redirect
 # ==========форма для пользователей==========
 
 class UserRegistrationForm(UserCreationForm):
@@ -89,7 +89,7 @@ class RepairRequestForm(forms.ModelForm):
             'client_name', 'client_phone',
             'car_brand', 'car_model', 'license_plate', 'vin',
             'mileage', 'dashboard_photo',
-            'work_types', 'issue_description', 'notes'
+            'work_types', 'issue_description', 'notes', 
         ]
         
         widgets = {
@@ -158,19 +158,19 @@ class RepairRequestForm(forms.ModelForm):
         self.fields['work_types'].required = False
 
 
-class RepairRequestStatusForm(forms.ModelForm):
-    """
-    Форма для изменения статуса заявки
-    """
-    class Meta:
-        model = RepairRequest
-        fields = ['status']
-        
-        widgets = {
-            'status': forms.Select(attrs={
-                'class': 'form-control'
-            }),
-        }
+
+def update_status(request, pk):
+    """Обновление статуса заявки"""
+    repair_request = get_object_or_404(RepairRequest, pk=pk)
+    
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        if new_status in dict(RepairRequest.STATUS_CHOICES):
+            repair_request.status = new_status
+            repair_request.save()
+            messages.success(request, f'Статус изменён на "{repair_request.get_status_display()}"')
+    
+    return redirect('service_reception:request_detail', pk=repair_request.pk)
 
 
 # ==========формы для отметок повреждений==========

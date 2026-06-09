@@ -1,9 +1,13 @@
-from django.shortcuts import render
-from .forms import RepairRequestForm, RepairRequestSearchForm, DamageMarkerForm
+from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
-from django.contrib.auth.forms import UserCreationForm
-from .models import RepairRequest, WorkType, DamageMarker, CarView, DamageType, User
+from django.contrib import messages
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+from .forms import RepairRequestForm, RepairRequestSearchForm, DamageMarkerForm, CustomUserCreationForm
+from .models import RepairRequest, WorkType, DamageMarker, CarView, DamageType, User
 
 
 # ========================================Главная================================
@@ -12,15 +16,12 @@ from django.contrib.auth.decorators import login_required
 def home(request):
     """Главная страница с дашбордом"""
     
-    # Подсчет количества записей
     total_requests = RepairRequest.objects.count()
     total_active = RepairRequest.objects.filter(status='active').count()
     total_completed = RepairRequest.objects.filter(status='completed').count()
     
-    # Последние 5 заявок
     recent_requests = RepairRequest.objects.all().order_by('-reception_date')[:5]
     
-    # Статистика по типам работ
     work_types_stats = []
     for wt in WorkType.objects.all():
         count = RepairRequest.objects.filter(work_types=wt).count()
@@ -35,7 +36,6 @@ def home(request):
         'work_types_stats': work_types_stats,
     }
     
-    # Если пользователь авторизован - добавляем его заявки
     if request.user.is_authenticated:
         context['my_requests_count'] = RepairRequest.objects.filter(receptionist=request.user).count()
         context['my_active_count'] = RepairRequest.objects.filter(receptionist=request.user, status='active').count()
@@ -50,9 +50,7 @@ def request_list(request):
     """Список заявок с поиском"""
     
     requests_list = RepairRequest.objects.select_related('receptionist').all().order_by('-reception_date', '-reception_time')
-    
     form = RepairRequestSearchForm(request.GET)
-    
     
     if form.is_valid():
         query = form.cleaned_data.get('search')
@@ -130,11 +128,12 @@ def request_create(request):
         form = RepairRequestForm(request.POST, request.FILES)
         if form.is_valid():
             repair_request = form.save(commit=False)
-            repair_request.receptionist = request.user if request.user.is_authenticated else None
+            if request.user.is_authenticated:
+                repair_request.receptionist = request.user
             repair_request.save()
-            form.save_m2m()  # Сохраняем ManyToMany (work_types)
+            form.save_m2m()
             messages.success(request, f'Заявка "{repair_request.request_number}" успешно создана!')
-            return redirect('reception:request_detail', pk=repair_request.pk)
+            return redirect('service_reception:request_detail', pk=repair_request.pk)
     else:
         form = RepairRequestForm()
     
@@ -151,7 +150,7 @@ def request_update(request, pk):
         if form.is_valid():
             repair_request = form.save()
             messages.success(request, f'Заявка "{repair_request.request_number}" успешно обновлена!')
-            return redirect('reception:request_detail', pk=repair_request.pk)
+            return redirect('service_reception:request_detail', pk=repair_request.pk)
     else:
         form = RepairRequestForm(instance=repair_request)
     
@@ -167,13 +166,55 @@ def request_delete(request, pk):
         request_number = repair_request.request_number
         repair_request.delete()
         messages.success(request, f'Заявка "{request_number}" удалена!')
-        return redirect('reception:request_list')
+        return redirect('service_reception:request_list')
     
     return render(request, 'reception/request_confirm_delete.html', {'repair_request': repair_request})
 
+
+@login_required
+def start_inspection(request, pk):
+    """Начать осмотр автомобиля"""
+    repair_request = get_object_or_404(RepairRequest, pk=pk)
+    
+    if repair_request.status == 'draft':
+        repair_request.status = 'active'
+        repair_request.save()
+        messages.success(request, 'Осмотр начат!')
+    
+    return redirect('service_reception:request_detail', pk=repair_request.pk)
+
+
+@login_required
+def complete_request(request, pk):
+    """Завершить заявку"""
+    repair_request = get_object_or_404(RepairRequest, pk=pk)
+    
+    if repair_request.status == 'active':
+        repair_request.status = 'completed'
+        repair_request.save()
+        messages.success(request, f'Заявка {repair_request.request_number} завершена!')
+    else:
+        messages.error(request, 'Заявка должна быть в статусе "Активна" для завершения')
+    
+    return redirect('service_reception:request_list')
+
+
+@login_required
+def cancel_request(request, pk):
+    """Отменить заявку"""
+    repair_request = get_object_or_404(RepairRequest, pk=pk)
+    
+    if repair_request.status != 'completed':
+        repair_request.status = 'cancelled'
+        repair_request.save()
+        messages.success(request, f'Заявка {repair_request.request_number} отменена')
+    
+    return redirect('service_reception:request_list')
+
+
 @login_required
 def my_requests(request):
-    """Мои заявки (только текущего пользователя)"""
+    """Мои заявки"""
     requests_list = RepairRequest.objects.filter(
         receptionist=request.user
     ).order_by('-reception_date', '-reception_time')
@@ -190,24 +231,11 @@ def my_requests(request):
         'requests_list': requests_list,
         'query': query,
     }
-    return render(request, 'service_reception/my_requests.html', context)
+    return render(request, 'reception/my_requests.html', context)
+
 
 def register(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, 'Регистрация прошла успешно!')
-            return redirect('service_reception:home')
-    else:
-        form = UserCreationForm()
-    
-    return render(request, 'reception/register.html', {'form': form})
-
-from .forms import CustomUserCreationForm
-
-def register(request):
+    """Регистрация пользователя"""
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
@@ -219,3 +247,38 @@ def register(request):
         form = CustomUserCreationForm()
     
     return render(request, 'reception/register.html', {'form': form})
+
+
+@login_required
+@csrf_exempt
+def add_damage_marker(request, request_id):
+    """API: Добавление отметки повреждения"""
+    if request.method == 'POST':
+        repair_request = get_object_or_404(RepairRequest, id=request_id)
+        
+        if repair_request.status != 'active':
+            return JsonResponse({'success': False, 'error': 'Осмотр не начат'})
+        
+        try:
+            data = json.loads(request.body)
+            
+            marker = DamageMarker.objects.create(
+                repair_request=repair_request,
+                car_view_id=data.get('car_view_id'),
+                damage_type_id=data.get('damage_type_id'),
+                x=data.get('x'),
+                y=data.get('y'),
+                description=data.get('description', '')
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'marker_id': marker.id,
+                'car_view_id': marker.car_view_id,
+                'x': marker.x,
+                'y': marker.y
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid method'})

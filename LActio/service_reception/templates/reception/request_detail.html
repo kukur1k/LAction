@@ -6,8 +6,17 @@
 <div class="flex_between mb_20">
     <h1>Заявка {{ repair_request.request_number }}</h1>
     <div class="flex_buttons">
-        <a href="{% url 'service_reception:request_update' repair_request.pk %}" class="btn_warning">Редактировать</a>
-        <a href="{% url 'service_reception:request_delete' repair_request.pk %}" class="btn_danger">Удалить</a>
+        {% if repair_request.status == 'draft' %}
+            <a href="{% url 'service_reception:start_inspection' repair_request.pk %}" class="btn_success">Начать осмотр</a>
+        {% elif repair_request.status == 'active' %}
+            <a href="{% url 'service_reception:complete_request' repair_request.pk %}" class="btn_primary">Завершить заявку</a>
+        {% endif %}
+        
+        {% if repair_request.status == 'draft' or repair_request.status == 'active' %}
+            <a href="{% url 'service_reception:request_update' repair_request.pk %}" class="btn_warning">Редактировать</a>
+            <a href="{% url 'service_reception:request_delete' repair_request.pk %}" class="btn_danger">Удалить</a>
+        {% endif %}
+        
         <a href="{% url 'service_reception:request_list' %}" class="btn_secondary">Назад</a>
     </div>
 </div>
@@ -65,9 +74,9 @@
         </div>
         {% if repair_request.dashboard_photo %}
         <div class="info_row">
-            <div class="info_label">Фото приборки</div>
+            <div class="info_label">Фото приборной панели</div>
             <div class="info_value">
-                <img src="{{ repair_request.dashboard_photo.url }}" class="damage_photo">
+                <img src="{{ repair_request.dashboard_photo.url }}" class="damage_photo" style="max-width: 200px;">
             </div>
         </div>
         {% endif %}
@@ -100,15 +109,59 @@
 
 <div class="main_card">
     <div class="main_card_header">Осмотр автомобиля</div>
+    
+    {% if repair_request.status == 'active' %}
     <div class="car_map_wrapper">
         <div class="view_buttons_panel">
             {% for view in car_views %}
-            <button class="view_button">{{ view.name }}</button>
+            <button class="view_button" disabled>{{ view.name }}</button>
             {% endfor %}
         </div>
         <div class="car_image_wrapper">
             <img class="car_scheme_image" src="{{ car_views.first.image_url|default:'/static/images/car_front.svg' }}">
         </div>
+        <div class="text_center" style="padding: 20px;">
+            <p><strong>Список отмеченных повреждений:</strong></p>
+            {% if damage_markers %}
+                {% for marker in damage_markers %}
+                <div class="damage_list_item">
+                    <strong>{{ marker.car_view.name }}</strong>
+                    <p>Тип: {{ marker.damage_type.name|default:"Не указан" }}</p>
+                    <p>Описание: {{ marker.description|default:"-" }}</p>
+                    {% if marker.photo %}
+                    <img src="{{ marker.photo.url }}" class="damage_photo">
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>Нет добавленных повреждений</p>
+            {% endif %}
+        </div>
     </div>
+    {% elif repair_request.status == 'new' %}
+    <div class="text_center" style="padding: 40px;">
+        <p>Осмотр ещё не начат.</p>
+        <p>Нажмите "Начать осмотр" чтобы добавить отметки повреждений.</p>
+    </div>
+    {% else %}
+    <div class="text_center" style="padding: 40px;">
+        <p>Заявка завершена или отменена.</p>
+        <div class="damage_list_wrapper">
+            <h4>Отмеченные повреждения:</h4>
+            {% for marker in damage_markers %}
+            <div class="damage_list_item">
+                <strong>{{ marker.car_view.name }}</strong>
+                <p>Тип: {{ marker.damage_type.name|default:"Повреждение" }}</p>
+                <p>Описание: {{ marker.description }}</p>
+                {% if marker.photo %}
+                <img src="{{ marker.photo.url }}" class="damage_photo">
+                {% endif %}
+            </div>
+            {% empty %}
+            <p>Нет отметок повреждений</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
