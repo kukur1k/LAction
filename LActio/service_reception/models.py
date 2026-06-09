@@ -1,6 +1,7 @@
 from django.db import models
 
 
+
 # ===========================модуль для отметки повреждений автомобиля=======================
 
 class CarView(models.Model):
@@ -39,3 +40,91 @@ class DamageMarker(models.Model):
     
     def __str__(self):
         return f"{self.car_view.name}: {self.damage_type}"
+
+
+
+class WorkType(models.Model):
+    """Тип работ - выбор из списка"""
+    name = models.CharField(max_length=200, verbose_name='Название')
+    
+    def __str__(self):
+        return self.name
+    
+
+class User(AbstractUser):
+    """модель пользователя"""
+    
+    phone = models.CharField(max_length=20, blank=True, verbose_name='Телефон')
+    position = models.CharField(max_length=100, blank=True, verbose_name='Должность')
+    
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True, verbose_name='Фото')
+    
+    def __str__(self):
+        return f"{self.get_full_name()} ({self.username})"
+    
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+
+
+
+class RepairRequest(models.Model):
+    """Заявка на приём автомобиля (минимальная)"""
+    
+    STATUS_CHOICES = [
+        ('draft', 'Черновик'),
+        ('active', 'Активна'),
+        ('completed', 'Завершена'),
+        ('cancelled', 'Отменена'),
+    ]
+    
+
+    request_number = models.CharField(max_length=20, unique=True, editable=False)
+    receptionist = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    reception_date = models.DateField()
+    reception_time = models.TimeField()
+    
+
+    client_name = models.CharField(max_length=200)
+    client_phone = models.CharField(max_length=20)
+    
+
+    car_brand = models.CharField(max_length=100)
+    car_model = models.CharField(max_length=100)
+
+    vin = models.CharField(max_length=17, blank=True)
+    
+    work_types = models.ManyToManyField('WorkType', blank=True)
+    
+    issue_description = models.TextField()
+    notes = models.TextField(blank=True)
+    
+    # =====Фото приборной панели=====
+    dashboard_photo = models.ImageField(
+        upload_to='dashboard/', 
+        blank=True, 
+        null=True, 
+        verbose_name='Фото приборной панели'
+    )
+    
+    # =====Пробег=====
+    mileage = models.IntegerField(
+        null=True, 
+        blank=True, 
+        verbose_name='Пробег (км)'
+    )
+
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+
+
+    
+    def save(self, *args, **kwargs):
+        if not self.request_number:
+            import uuid
+            self.request_number = f"СТО-{uuid.uuid4().hex[:6].upper()}"
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"{self.request_number} - {self.client_name}"
