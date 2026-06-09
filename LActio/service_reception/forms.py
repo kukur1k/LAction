@@ -370,3 +370,24 @@ class RepairRequestSearchForm(forms.Form):
             'placeholder': 'Имя или фамилия приёмщика'
         })
     )
+
+
+class CustomUserCreationForm(UserCreationForm):
+    """Форма регистрации с кастомной моделью User"""
+    
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name', 'phone', 'position')
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'search_field_input'
+
+
+class CustomUserChangeForm(UserChangeForm):
+    """Форма редактирования пользователя"""
+    
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name', 'phone', 'position', 'avatar')

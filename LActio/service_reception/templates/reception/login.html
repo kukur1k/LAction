@@ -1,0 +1,33 @@
+{% extends 'reception/base.html' %}
+
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+<div class="form_wrapper">
+    <div class="form_container">
+        <div class="main_card">
+            <div class="main_card_header">Вход</div>
+            <form method="post" class="login_form">
+                {% csrf_token %}
+                <div class="form_field">
+                    <label>Имя пользователя</label>
+                    <input type="text" name="username" required class="search_field_input">
+                </div>
+                <div class="form_field">
+                    <label>Пароль</label>
+                    <input type="password" name="password" required class="search_field_input">
+                </div>
+                {% if form.errors %}
+                <div class="form_error">
+                    Неверное имя пользователя или пароль
+                </div>
+                {% endif %}
+                <div class="flex_buttons">
+                    <button type="submit" class="btn_success">Войти</button>
+                    <a href="{% url 'service_reception:register' %}" class="btn_secondary">Регистрация</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

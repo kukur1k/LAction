@@ -193,7 +193,6 @@ def my_requests(request):
     return render(request, 'service_reception/my_requests.html', context)
 
 def register(request):
-    """Регистрация нового пользователя"""
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
@@ -204,4 +203,19 @@ def register(request):
     else:
         form = UserCreationForm()
     
-    return render(request, 'registration/register.html', {'form': form})
+    return render(request, 'reception/register.html', {'form': form})
+
+from .forms import CustomUserCreationForm
+
+def register(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, 'Регистрация прошла успешно!')
+            return redirect('service_reception:home')
+    else:
+        form = CustomUserCreationForm()
+    
+    return render(request, 'reception/register.html', {'form': form})

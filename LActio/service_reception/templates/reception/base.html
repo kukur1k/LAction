@@ -21,14 +21,14 @@
                     <li><a class="navbar_link" href="{% url 'service_reception:my_requests' %}">Мои заявки</a></li>
                     <li><a class="navbar_link" href="#">{{ user.get_full_name|default:user.username }}</a></li>
                     <li>
-                        <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                        <form method="post" action="{% url 'service_reception:logout' %}" style="display: inline;">
                             {% csrf_token %}
                             <button type="submit" class="btn_secondary btn_small">Выйти</button>
                         </form>
                     </li>
                     {% else %}
                     <li><a class="navbar_link" href="{% url 'service_reception:register' %}">Регистрация</a></li>
-                    <li><a class="navbar_link" href="/admin/login/">Вход</a></li>
+                    <li><a class="navbar_link" href="{% url 'service_reception:login' %}">Вход</a></li>
                     {% endif %}
                 </ul>
             </div>

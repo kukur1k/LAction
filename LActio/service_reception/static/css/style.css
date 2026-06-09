@@ -536,3 +536,40 @@ body {
     border-radius: 6px;
     margin-top: 8px;
 }
+
+.register_form .form_field {
+    margin-bottom: 20px;
+}
+
+.register_form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.register_form input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.register_form input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
+}
+
+.register_form .form_error {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+.register_form .form_error p {
+    margin: 5px 0;
+}
