@@ -1,0 +1,86 @@
+{% extends 'reception/base.html' %}
+
+{% block title %}Главная - СТО Приёмка{% endblock %}
+
+{% block content %}
+<div class="flex_between mb_20">
+    <h1>Панель управления</h1>
+</div>
+
+<div class="stat_grid">
+    <div class="stat_card">
+        <div class="stat_card_number">{{ total_requests }}</div>
+        <div class="stat_card_label">Всего заявок</div>
+    </div>
+    <div class="stat_card">
+        <div class="stat_card_number">{{ total_active }}</div>
+        <div class="stat_card_label">Активные</div>
+    </div>
+    <div class="stat_card">
+        <div class="stat_card_number">{{ total_completed }}</div>
+        <div class="stat_card_label">Завершённые</div>
+    </div>
+    <div class="stat_card">
+        <div class="stat_card_number">{{ my_requests_count|default:0 }}</div>
+        <div class="stat_card_label">Мои заявки</div>
+    </div>
+</div>
+
+<div class="two_columns">
+    <div class="main_card">
+        <div class="main_card_header">Последние заявки</div>
+        {% if recent_requests %}
+        <table class="data_table">
+            <thead>
+                <tr>
+                    <th class="data_table_header">Номер</th>
+                    <th class="data_table_header">Клиент</th>
+                    <th class="data_table_header">Автомобиль</th>
+                    <th class="data_table_header">Дата</th>
+                    <th class="data_table_header"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in recent_requests %}
+                <tr>
+                    <td class="data_table_cell">{{ req.request_number }}</td>
+                    <td class="data_table_cell">{{ req.client_name }}</td>
+                    <td class="data_table_cell">{{ req.car_brand }} {{ req.car_model }}</td>
+                    <td class="data_table_cell">{{ req.reception_date|date:"d.m.Y" }}</td>
+                    <td class="data_table_cell">
+                        <a href="{% url 'reception:request_detail' req.pk %}" class="btn_primary btn_small">Детали</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text_center">Нет заявок</p>
+        {% endif %}
+    </div>
+
+    <div>
+        <div class="main_card">
+            <div class="main_card_header">Типы работ</div>
+            {% if work_types_stats %}
+            <ul class="list_unstyled">
+                {% for wt in work_types_stats %}
+                <li class="list_item_border">
+                    <span>{{ wt.name }}</span>
+                    <span class="status_badge status_active">{{ wt.count }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text_center">Нет данных</p>
+            {% endif %}
+        </div>
+
+        <div class="main_card">
+            <div class="main_card_header">Быстрые действия</div>
+            <a href="{% url 'reception:request_create' %}" class="btn_success btn_block_mb">+ Новая заявка</a>
+            <a href="{% url 'reception:request_list' %}" class="btn_primary btn_block">Все заявки</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}СТО Приёмка авто{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'reception/css/styles.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar_custom">
+        <div class="main_container">
+            <div class="flex_between">
+                <a class="navbar_brand" href="{% url 'reception:home' %}">СТО Приёмка авто</a>
+                <ul class="navbar_menu">
+                    <li><a class="navbar_link" href="{% url 'reception:home' %}">Главная</a></li>
+                    <li><a class="navbar_link" href="{% url 'reception:request_list' %}">Заявки</a></li>
+                    <li><a class="navbar_link" href="{% url 'reception:request_create' %}">Новая заявка</a></li>
+                    {% if user.is_authenticated %}
+                    <li><a class="navbar_link" href="{% url 'reception:my_requests' %}">Мои заявки</a></li>
+                    <li><a class="navbar_link" href="#">{{ user.get_full_name|default:user.username }}</a></li>
+                    <li>
+                        <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn_secondary btn_small">Выйти</button>
+                        </form>
+                    </li>
+                    {% else %}
+                    <li><a class="navbar_link" href="{% url 'reception:register' %}">Регистрация</a></li>
+                    <li><a class="navbar_link" href="/admin/login/">Вход</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main_container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="main_card 
+                    {% if message.tags == 'success' %}message_success
+                    {% elif message.tags == 'error' %}message_error
+                    {% else %}message_warning{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer_custom">
+        <div class="main_container">
+            <p>© {% now "Y" %} СТО Приёмка автомобилей</p>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

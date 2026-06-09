@@ -1,0 +1,114 @@
+{% extends 'reception/base.html' %}
+
+{% block title %}Заявка {{ repair_request.request_number }}{% endblock %}
+
+{% block content %}
+<div class="flex_between mb_20">
+    <h1>Заявка {{ repair_request.request_number }}</h1>
+    <div class="flex_buttons">
+        <a href="{% url 'reception:request_update' repair_request.pk %}" class="btn_warning">Редактировать</a>
+        <a href="{% url 'reception:request_delete' repair_request.pk %}" class="btn_danger">Удалить</a>
+        <a href="{% url 'reception:request_list' %}" class="btn_secondary">Назад</a>
+    </div>
+</div>
+
+<div class="info_grid">
+    <div class="info_section">
+        <div class="info_section_title">Информация о клиенте</div>
+        <div class="info_row">
+            <div class="info_label">Клиент</div>
+            <div class="info_value">{{ repair_request.client_name }}</div>
+        </div>
+        <div class="info_row">
+            <div class="info_label">Телефон</div>
+            <div class="info_value">{{ repair_request.client_phone }}</div>
+        </div>
+        <div class="info_row">
+            <div class="info_label">Дата приёма</div>
+            <div class="info_value">{{ repair_request.reception_date|date:"d.m.Y" }}</div>
+        </div>
+        <div class="info_row">
+            <div class="info_label">Время</div>
+            <div class="info_value">{{ repair_request.reception_time|time:"H:i" }}</div>
+        </div>
+        <div class="info_row">
+            <div class="info_label">Статус</div>
+            <div class="info_value">
+                <span class="status_badge status_{{ repair_request.status }}">
+                    {{ repair_request.get_status_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="info_section">
+        <div class="info_section_title">Информация об автомобиле</div>
+        <div class="info_row">
+            <div class="info_label">Марка</div>
+            <div class="info_value">{{ repair_request.car_brand }}</div>
+        </div>
+        <div class="info_row">
+            <div class="info_label">Модель</div>
+            <div class="info_value">{{ repair_request.car_model }}</div>
+        </div>
+        <div class="info_row">
+            <div class="info_label">Гос номер</div>
+            <div class="info_value">{{ repair_request.license_plate }}</div>
+        </div>
+        <div class="info_row">
+            <div class="info_label">VIN</div>
+            <div class="info_value">{{ repair_request.vin|default:"-" }}</div>
+        </div>
+        <div class="info_row">
+            <div class="info_label">Пробег</div>
+            <div class="info_value">{{ repair_request.mileage|default:"-" }} км</div>
+        </div>
+        {% if repair_request.dashboard_photo %}
+        <div class="info_row">
+            <div class="info_label">Фото приборки</div>
+            <div class="info_value">
+                <img src="{{ repair_request.dashboard_photo.url }}" class="damage_photo">
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="info_section mb_20">
+    <div class="info_section_title">Причина обращения и работы</div>
+    <div class="info_row">
+        <div class="info_label">Причина</div>
+        <div class="info_value">{{ repair_request.issue_description }}</div>
+    </div>
+    <div class="info_row">
+        <div class="info_label">Примечания</div>
+        <div class="info_value">{{ repair_request.notes|default:"-" }}</div>
+    </div>
+    <div class="info_row">
+        <div class="info_label">Типы работ</div>
+        <div class="info_value">
+            <ul class="info_list">
+                {% for wt in repair_request.work_types.all %}
+                <li>{{ wt.name }}</li>
+                {% empty %}
+                <li>Не указаны</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="main_card">
+    <div class="main_card_header">Осмотр автомобиля</div>
+    <div class="car_map_wrapper">
+        <div class="view_buttons_panel">
+            {% for view in car_views %}
+            <button class="view_button">{{ view.name }}</button>
+            {% endfor %}
+        </div>
+        <div class="car_image_wrapper">
+            <img class="car_scheme_image" src="{{ car_views.first.image_url|default:'/static/images/car_front.svg' }}">
+        </div>
+    </div>
+</div>
+{% endblock %}
