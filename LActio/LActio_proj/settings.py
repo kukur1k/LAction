@@ -9,7 +9,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000', 'http://127.0.0.1:3000', 'http://localhost:3000']
 CSRF_COOKIE_SECURE = False
 CSRF_USE_SESSIONS = False
 
