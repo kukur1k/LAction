@@ -1,0 +1,31 @@
+{% extends 'reception/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="form_wrapper">
+    <div class="form_container">
+        <div class="main_card">
+            <div class="main_card_header">{{ title }}</div>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="form_field">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.errors %}
+                    <div class="form_error">
+                        {{ field.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <div class="flex_buttons">
+                    <button type="submit" class="btn_success">Сохранить</button>
+                    <a href="{% url 'service_reception:request_list' %}" class="btn_secondary">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
