@@ -126,7 +126,7 @@ class UserAdmin(BaseUserAdmin):
             form = AdminPasswordChangeForm(user)
         return render(request, 'admin/auth/user/change_password.html', {'form': form, 'user': user})
 
-
+ 
 @admin.register(RepairRequest)
 class RepairRequestAdmin(admin.ModelAdmin):
     """Управление заявками"""
@@ -138,7 +138,7 @@ class RepairRequestAdmin(admin.ModelAdmin):
     ]
     list_filter = ['status', 'reception_date', 'receptionist']
     search_fields = ['request_number', 'client_name', 'client_phone', 'license_plate', 'vin']
-    readonly_fields = ['request_number']  # ← только request_number, убрал created_at и updated_at
+    readonly_fields = ['request_number'] 
     list_editable = ['status']
     list_per_page = 20
     

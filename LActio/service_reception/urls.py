@@ -1,8 +1,19 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from . import admin_views
+
+from .admin_views import (
+    admin_dashboard, admin_users, admin_user_detail, 
+    admin_user_change_password, admin_user_approve, admin_user_reject,
+    admin_user_make_staff, admin_user_remove_staff, 
+    admin_user_toggle_active, admin_requests
+)
 
 app_name = 'service_reception'
+
+
+
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -21,4 +32,16 @@ urlpatterns = [
     path('pending-users/', views.pending_users, name='pending_users'),
     path('approve-user/<int:user_id>/', views.approve_user, name='approve_user'),
     path('reject-user/<int:user_id>/', views.reject_user, name='reject_user'),
+
+    # Админ панель
+    path('admin-panel/', admin_views.admin_dashboard, name='admin_dashboard'),
+    path('admin-panel/users/', admin_views.admin_users, name='admin_users'),
+    path('admin-panel/users/<int:user_id>/', admin_views.admin_user_detail, name='admin_user_detail'),
+    path('admin-panel/users/<int:user_id>/change-password/', admin_views.admin_user_change_password, name='admin_user_change_password'),
+    path('admin-panel/users/<int:user_id>/approve/', admin_views.admin_user_approve, name='admin_user_approve'),
+    path('admin-panel/users/<int:user_id>/reject/', admin_views.admin_user_reject, name='admin_user_reject'),
+    path('admin-panel/users/<int:user_id>/make-staff/', admin_views.admin_user_make_staff, name='admin_user_make_staff'),
+    path('admin-panel/users/<int:user_id>/remove-staff/', admin_views.admin_user_remove_staff, name='admin_user_remove_staff'),
+    path('admin-panel/users/<int:user_id>/toggle-active/', admin_views.admin_user_toggle_active, name='admin_user_toggle_active'),
+    path('admin-panel/requests/', admin_views.admin_requests, name='admin_requests'),
 ]

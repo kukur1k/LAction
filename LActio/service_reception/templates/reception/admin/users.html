@@ -1,0 +1,70 @@
+{% extends 'reception/base.html' %}
+
+{% block title %}Управление пользователями{% endblock %}
+
+{% block content %}
+<div class="flex_between mb_20">
+    <h1>Управление пользователями</h1>
+    <a href="{% url 'service_reception:admin_dashboard' %}" class="btn_secondary">Назад</a>
+</div>
+
+<div class="search_section">
+    <form method="get" class="search_form_simple">
+        <input type="text" name="search" class="search_input_simple" placeholder="Поиск по имени, логину, email..." value="{{ search }}">
+        <button type="submit" class="btn_primary">Найти</button>
+        {% if search %}<a href="{% url 'service_reception:admin_users' %}" class="btn_secondary">Сбросить</a>{% endif %}
+    </form>
+</div>
+
+<div class="main_card">
+    <div class="main_card_header">Пользователи ({{ users.count }})</div>
+    <div class="table-responsive">
+        <table class="data_table">
+            <thead>
+                <tr>
+                    <th class="data_table_header">Логин</th>
+                    <th class="data_table_header">Имя</th>
+                    <th class="data_table_header">Email</th>
+                    <th class="data_table_header">Телефон</th>
+                    <th class="data_table_header">Должность</th>
+                    <th class="data_table_header">Подтверждён</th>
+                    <th class="data_table_header">Статус</th>
+                    <th class="data_table_header">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td class="data_table_cell">{{ u.username }}</td>
+                    <td class="data_table_cell">{{ u.get_full_name|default:"-" }}</td>
+                    <td class="data_table_cell">{{ u.email|default:"-" }}</td>
+                    <td class="data_table_cell">{{ u.phone|default:"-" }}</td>
+                    <td class="data_table_cell">{{ u.get_position_display }}</td>
+                    <td class="data_table_cell">
+                        {% if u.is_approved %}
+                            <span class="status_badge status_completed">Да</span>
+                        {% else %}
+                            <span class="status_badge status_cancelled">Нет</span>
+                        {% endif %}
+                    </td>
+                    <td class="data_table_cell">
+                        {% if u.is_active %}
+                            <span class="status_badge status_active">Активен</span>
+                        {% else %}
+                            <span class="status_badge status_draft">Заблокирован</span>
+                        {% endif %}
+                    </td>
+                    <td class="data_table_cell">
+                        <a href="{% url 'service_reception:admin_user_detail' u.id %}" class="btn_primary btn_small">Редактировать</a>
+                        {% if not u.is_approved %}
+                            <a href="{% url 'service_reception:admin_user_approve' u.id %}" class="btn_success btn_small">Подтвердить</a>
+                        {% endif %}
+                        <a href="{% url 'service_reception:admin_user_change_password' u.id %}" class="btn_warning btn_small">Сменить пароль</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

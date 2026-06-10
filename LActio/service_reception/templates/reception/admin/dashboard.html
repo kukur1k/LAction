@@ -1,0 +1,30 @@
+{% extends 'reception/base.html' %}
+
+{% block title %}Админ панель{% endblock %}
+
+{% block content %}
+<h1 class="mb_20">Панель администратора</h1>
+
+<div class="stat_grid">
+    <div class="stat_card">
+        <div class="stat_card_number">{{ total_users }}</div>
+        <div class="stat_card_label">Всего пользователей</div>
+    </div>
+    <div class="stat_card">
+        <div class="stat_card_number">{{ pending_users }}</div>
+        <div class="stat_card_label">Ожидают подтверждения</div>
+    </div>
+    <div class="stat_card">
+        <div class="stat_card_number">{{ total_requests }}</div>
+        <div class="stat_card_label">Всего заявок</div>
+    </div>
+    <div class="stat_card">
+        <div class="stat_card_number">{{ active_requests }}</div>
+        <div class="stat_card_label">Активных заявок</div>
+    </div>
+</div>
+
+<div class="flex_buttons" style="justify-content: center; gap: 20px;">
+    <a href="{% url 'service_reception:admin_users' %}" class="btn_primary">Управление пользователями</a>
+</div>
+{% endblock %}
