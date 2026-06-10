@@ -59,7 +59,9 @@
                 <th class="data_table_header">Гос номер</th>
                 <th class="data_table_header">Дата</th>
                 <th class="data_table_header">Статус</th>
-                <th class="data_table_header">Приёмщик</th>
+                {% if is_admin %}
+                    <th class="data_table_header">Приёмщик</th>
+                {% endif %}
                 <th class="data_table_header"></th>
             </tr>
         </thead>

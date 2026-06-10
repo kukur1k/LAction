@@ -20,10 +20,6 @@
         <div class="stat_card_number">{{ total_completed }}</div>
         <div class="stat_card_label">Завершённые</div>
     </div>
-    <div class="stat_card">
-        <div class="stat_card_number">{{ my_requests_count|default:0 }}</div>
-        <div class="stat_card_label">Мои заявки</div>
-    </div>
 </div>
 
 <div class="two_columns">
@@ -60,21 +56,7 @@
     </div>
 
     <div>
-        <div class="main_card">
-            <div class="main_card_header">Типы работ</div>
-            {% if work_types_stats %}
-            <ul class="list_unstyled">
-                {% for wt in work_types_stats %}
-                <li class="list_item_border">
-                    <span>{{ wt.name }}</span>
-                    <span class="status_badge status_active">{{ wt.count }}</span>
-                </li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p class="text_center">Нет данных</p>
-            {% endif %}
-        </div>
+        
 
         <div class="main_card">
             <div class="main_card_header">Быстрые действия</div>

@@ -18,7 +18,6 @@
                     <li><a class="navbar_link" href="{% url 'service_reception:request_list' %}">Заявки</a></li>
                     <li><a class="navbar_link" href="{% url 'service_reception:request_create' %}">Новая заявка</a></li>
                     {% if user.is_authenticated %}
-                    <li><a class="navbar_link" href="{% url 'service_reception:my_requests' %}">Мои заявки</a></li>
                     <li><a class="navbar_link" href="#">{{ user.get_full_name|default:user.username }}</a></li>
                     <li>
                         <form method="post" action="{% url 'service_reception:logout' %}" style="display: inline;">

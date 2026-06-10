@@ -16,15 +16,32 @@ from .models import RepairRequest, WorkType, DamageMarker, CarView, DamageType, 
 def home(request):
     """Главная страница с дашбордом"""
     
-    total_requests = RepairRequest.objects.count()
-    total_active = RepairRequest.objects.filter(status='active').count()
-    total_completed = RepairRequest.objects.filter(status='completed').count()
+    if not request.user.is_authenticated:
+        return render(request, 'reception/home.html', {
+            'total_requests': 0,
+            'total_active': 0,
+            'total_completed': 0,
+            'recent_requests': [],
+            'work_types_stats': [],
+        })
     
-    recent_requests = RepairRequest.objects.all().order_by('-reception_date')[:5]
+    # Проверка - админ ли пользователь
+    if request.user.is_staff:
+        # Админ видит все заявки
+        requests_list = RepairRequest.objects.all()
+    else:
+        # Обычный пользователь видит только свои заявки
+        requests_list = RepairRequest.objects.filter(receptionist=request.user)
     
+    total_requests = requests_list.count()
+    total_active = requests_list.filter(status='active').count()
+    total_completed = requests_list.filter(status='completed').count()
+    recent_requests = requests_list.order_by('-reception_date')[:5]
+    
+    # Статистика по типам работ
     work_types_stats = []
     for wt in WorkType.objects.all():
-        count = RepairRequest.objects.filter(work_types=wt).count()
+        count = requests_list.filter(work_types=wt).count()
         if count > 0:
             work_types_stats.append({'name': wt.name, 'count': count})
     
@@ -34,22 +51,24 @@ def home(request):
         'total_completed': total_completed,
         'recent_requests': recent_requests,
         'work_types_stats': work_types_stats,
+        'is_admin': request.user.is_staff,
     }
     
-    if request.user.is_authenticated:
-        context['my_requests_count'] = RepairRequest.objects.filter(receptionist=request.user).count()
-        context['my_active_count'] = RepairRequest.objects.filter(receptionist=request.user, status='active').count()
-    
     return render(request, 'reception/home.html', context)
-
-
-# ========================================Заявки================================
 
 
 def request_list(request):
     """Список заявок с поиском"""
     
-    requests_list = RepairRequest.objects.select_related('receptionist').all().order_by('-reception_date', '-reception_time')
+    if not request.user.is_authenticated:
+        return redirect('service_reception:login')
+    
+    # Проверка - админ ли пользователь
+    if request.user.is_staff:
+        requests_list = RepairRequest.objects.select_related('receptionist').all().order_by('-reception_date', '-reception_time')
+    else:
+        requests_list = RepairRequest.objects.filter(receptionist=request.user).select_related('receptionist').order_by('-reception_date', '-reception_time')
+    
     form = RepairRequestSearchForm(request.GET)
     
     if form.is_valid():
@@ -91,7 +110,8 @@ def request_list(request):
         if car_model:
             requests_list = requests_list.filter(car_model__icontains=car_model)
         
-        if receptionist_name:
+        if receptionist_name and request.user.is_staff:
+            # Только админ может искать по приёмщику
             requests_list = requests_list.filter(
                 Q(receptionist__first_name__icontains=receptionist_name) |
                 Q(receptionist__last_name__icontains=receptionist_name)
@@ -100,6 +120,7 @@ def request_list(request):
     context = {
         'requests_list': requests_list,
         'form': form,
+        'is_admin': request.user.is_staff,
     }
     return render(request, 'reception/request_list.html', context)
 
