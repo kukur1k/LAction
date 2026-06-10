@@ -1,5 +1,4 @@
 {% extends 'reception/base.html' %}
-{% load static %}
 
 {% block title %}Регистрация{% endblock %}
 
@@ -8,29 +7,32 @@
     <div class="form_container">
         <div class="main_card">
             <div class="main_card_header">Регистрация</div>
-            <form method="post" class="register_form">
+            
+            
+            {% if form.errors %}
+            <div class="form_error" style="margin-bottom: 15px; background-color: #f8d7da; color: #721c24;">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <form method="post">
                 {% csrf_token %}
+                {% for field in form %}
                 <div class="form_field">
-                    <label>Имя пользователя</label>
-                    {{ form.username }}
+                    <label>{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <small style="color: #666; display: block;">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% if field.errors %}
+                    <div class="form_error">{{ field.errors }}</div>
+                    {% endif %}
                 </div>
-                <div class="form_field">
-                    <label>Пароль</label>
-                    {{ form.password1 }}
-                </div>
-                <div class="form_field">
-                    <label>Подтверждение пароля</label>
-                    {{ form.password2 }}
-                </div>
-                {% if form.errors %}
-                    <div class="form_error">
-                        {% for field, errors in form.errors.items %}
-                            {% for error in errors %}
-                                <p>{{ error }}</p>
-                            {% endfor %}
-                        {% endfor %}
-                    </div>
-                {% endif %}
+                {% endfor %}
                 <div class="flex_buttons">
                     <button type="submit" class="btn_success">Зарегистрироваться</button>
                     <a href="{% url 'service_reception:login' %}" class="btn_secondary">Уже есть аккаунт</a>

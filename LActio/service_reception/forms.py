@@ -6,38 +6,42 @@ from django.shortcuts import render, get_object_or_404, redirect
 # ==========форма для пользователей==========
 
 class UserRegistrationForm(UserCreationForm):
-    """
-    Форма регистрации нового пользователя (приёмщика)
-    """
+    """Форма регистрации (без автоматического входа)"""
+    
+    email = forms.EmailField(required=True)
+    first_name = forms.CharField(max_length=100, required=True)
+    last_name = forms.CharField(max_length=100, required=True)
+    phone = forms.CharField(max_length=20, required=True)
+    
     class Meta:
         model = User
         fields = ['username', 'first_name', 'last_name', 'email', 'phone', 'position', 'password1', 'password2']
         
         widgets = {
-            'username': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Логин'
-            }),
-            'first_name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Имя'
-            }),
-            'last_name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Фамилия'
-            }),
-            'email': forms.EmailInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Email'
-            }),
-            'phone': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': '+7 (***) ***-**-**)'
-            }),
-            'position': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Должность'
-            }),
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Логин'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Имя'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Фамилия'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+7 (999) 123-45-67'}),
+            'position': forms.Select(attrs={'class': 'form-control'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field_name not in ['position']:
+                field.widget.attrs['class'] = 'search_field_input'
+
+
+class UserApprovalForm(forms.ModelForm):
+    """Форма для подтверждения пользователя админом"""
+    
+    class Meta:
+        model = User
+        fields = ['is_approved', 'position']
+        widgets = {
+            'is_approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'position': forms.Select(attrs={'class': 'form-control'}),
         }
 
 
@@ -391,3 +395,76 @@ class CustomUserChangeForm(UserChangeForm):
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name', 'last_name', 'phone', 'position', 'avatar')
+
+
+
+# ==================================Admin================================
+
+class UserAdminForm(forms.ModelForm):
+    """Форма для редактирования пользователя админом"""
+    
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email', 'phone', 'position', 'avatar', 'is_approved', 'is_staff', 'is_active']
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'search_field_input'}),
+            'first_name': forms.TextInput(attrs={'class': 'search_field_input'}),
+            'last_name': forms.TextInput(attrs={'class': 'search_field_input'}),
+            'email': forms.EmailInput(attrs={'class': 'search_field_input'}),
+            'phone': forms.TextInput(attrs={'class': 'search_field_input'}),
+            'position': forms.Select(attrs={'class': 'search_field_input'}),
+            'avatar': forms.FileInput(attrs={'class': 'search_field_input'}),
+            'is_approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_staff': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+
+class RepairRequestAdminForm(forms.ModelForm):
+    """Форма для редактирования заявки админом"""
+    
+    class Meta:
+        model = RepairRequest
+        fields = '__all__'
+        widgets = {
+            'reception_date': forms.DateInput(attrs={'type': 'date', 'class': 'search_field_input'}),
+            'reception_time': forms.TimeInput(attrs={'type': 'time', 'class': 'search_field_input'}),
+            'client_name': forms.TextInput(attrs={'class': 'search_field_input'}),
+            'client_phone': forms.TextInput(attrs={'class': 'search_field_input'}),
+            'car_brand': forms.TextInput(attrs={'class': 'search_field_input'}),
+            'car_model': forms.TextInput(attrs={'class': 'search_field_input'}),
+            'license_plate': forms.TextInput(attrs={'class': 'search_field_input'}),
+            'vin': forms.TextInput(attrs={'class': 'search_field_input'}),
+            'mileage': forms.NumberInput(attrs={'class': 'search_field_input'}),
+            'issue_description': forms.Textarea(attrs={'class': 'search_field_input', 'rows': 3}),
+            'notes': forms.Textarea(attrs={'class': 'search_field_input', 'rows': 2}),
+            'status': forms.Select(attrs={'class': 'search_field_input'}),
+            'receptionist': forms.Select(attrs={'class': 'search_field_input'}),
+        }
+
+class AdminSetPasswordForm(forms.Form):
+    """Форма для установки нового пароля пользователю (без старого пароля)"""
+    password = forms.CharField(
+        label='Новый пароль',
+        widget=forms.PasswordInput(attrs={'class': 'search_field_input'}),
+        min_length=8
+    )
+    password_confirm = forms.CharField(
+        label='Подтверждение пароля',
+        widget=forms.PasswordInput(attrs={'class': 'search_field_input'}),
+        min_length=8
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        password_confirm = cleaned_data.get('password_confirm')
+        
+        if password and password_confirm and password != password_confirm:
+            raise forms.ValidationError('Пароли не совпадают')
+        return cleaned_data
+    
+    def save(self, user):
+        user.set_password(self.cleaned_data['password'])
+        user.save()
+        return user

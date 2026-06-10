@@ -8,6 +8,8 @@ from django.http import JsonResponse
 import json
 from .forms import RepairRequestForm, RepairRequestSearchForm, DamageMarkerForm, CustomUserCreationForm
 from .models import RepairRequest, WorkType, DamageMarker, CarView, DamageType, User
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth import authenticate, login
 
 
 # ========================================Главная================================
@@ -233,41 +235,85 @@ def cancel_request(request, pk):
     return redirect('service_reception:request_list')
 
 
-@login_required
-def my_requests(request):
-    """Мои заявки"""
-    requests_list = RepairRequest.objects.filter(
-        receptionist=request.user
-    ).order_by('-reception_date', '-reception_time')
-    
-    query = request.GET.get('q')
-    if query:
-        requests_list = requests_list.filter(
-            Q(request_number__icontains=query) |
-            Q(client_name__icontains=query) |
-            Q(license_plate__icontains=query)
-        )
-    
-    context = {
-        'requests_list': requests_list,
-        'query': query,
-    }
-    return render(request, 'reception/my_requests.html', context)
-
 
 def register(request):
-    """Регистрация пользователя"""
+    """Регистрация пользователя (ждёт подтверждения админа)"""
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, 'Регистрация прошла успешно!')
-            return redirect('service_reception:home')
+            user = form.save(commit=False)
+            user.is_active = True  # Пользователь активен, но не подтверждён
+            user.is_approved = False  # Ждёт подтверждения
+            user.save()
+            
+            messages.success(request, 'Регистрация отправлена на подтверждение администратору. После одобрения вы сможете войти.')
+            return redirect('service_reception:login')
     else:
         form = CustomUserCreationForm()
     
     return render(request, 'reception/register.html', {'form': form})
+
+
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        user = authenticate(request, username=username, password=password)
+        
+        # Отладка
+        print(f"Пользователь: {user}")
+        if user:
+            print(f"is_approved: {user.is_approved}")
+            print(f"Тип is_approved: {type(user.is_approved)}")
+        
+        if user is not None:
+            if user.is_approved == True:  # ← явное сравнение
+                login(request, user)
+                messages.success(request, 'Вход выполнен')
+                return redirect('service_reception:home')
+            else:
+                messages.error(request, 'Аккаунт не подтверждён. Дождитесь одобрения администратора.')
+                return redirect('service_reception:login')
+        else:
+            messages.error(request, 'Неверный логин или пароль')
+            return redirect('service_reception:login')
+    
+    return render(request, 'reception/login.html')
+
+
+def is_admin(user):
+    return user.is_staff or user.position == 'admin'
+
+
+@login_required
+@user_passes_test(is_admin)
+def pending_users(request):
+    """Список пользователей, ожидающих подтверждения (только для админа)"""
+    pending = User.objects.filter(is_approved=False, is_staff=False)
+    return render(request, 'reception/pending_users.html', {'pending_users': pending})
+
+
+@login_required
+@user_passes_test(is_admin)
+def approve_user(request, user_id):
+    """Подтверждение пользователя админом"""
+    user = get_object_or_404(User, id=user_id)
+    user.is_approved = True
+    user.save()
+    messages.success(request, f'Пользователь {user.username} подтверждён.')
+    return redirect('service_reception:pending_users')
+
+
+@login_required
+@user_passes_test(is_admin)
+def reject_user(request, user_id):
+    """Отклонение пользователя админом"""
+    user = get_object_or_404(User, id=user_id)
+    username = user.username
+    user.delete()
+    messages.success(request, f'Пользователь {username} отклонён и удалён.')
+    return redirect('service_reception:pending_users')
 
 
 @login_required
