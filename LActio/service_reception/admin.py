@@ -6,19 +6,19 @@ from .models import User, RepairRequest, WorkType, DamageType, CarView, DamageMa
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ['username', 'email', 'first_name', 'last_name', 'phone', 'position', 'is_staff']
-    list_filter = ['position', 'is_staff', 'is_active']
+    list_display = ['username', 'email', 'first_name', 'last_name', 'phone', 'position', 'is_approved', 'is_staff']
+    list_filter = ['position', 'is_approved', 'is_staff', 'is_active']
     search_fields = ['username', 'first_name', 'last_name', 'email', 'phone']
     
     fieldsets = BaseUserAdmin.fieldsets + (
         ('Дополнительная информация', {
-            'fields': ('phone', 'position', 'avatar'),
+            'fields': ('phone', 'position', 'avatar', 'is_approved'),  # ← добавьте is_approved
         }),
     )
     
     add_fieldsets = BaseUserAdmin.add_fieldsets + (
         ('Дополнительная информация', {
-            'fields': ('phone', 'position'),
+            'fields': ('phone', 'position', 'is_approved'),  # ← добавьте is_approved
         }),
     )
 

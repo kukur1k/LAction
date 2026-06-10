@@ -6,38 +6,42 @@ from django.shortcuts import render, get_object_or_404, redirect
 # ==========форма для пользователей==========
 
 class UserRegistrationForm(UserCreationForm):
-    """
-    Форма регистрации нового пользователя (приёмщика)
-    """
+    """Форма регистрации (без автоматического входа)"""
+    
+    email = forms.EmailField(required=True)
+    first_name = forms.CharField(max_length=100, required=True)
+    last_name = forms.CharField(max_length=100, required=True)
+    phone = forms.CharField(max_length=20, required=True)
+    
     class Meta:
         model = User
         fields = ['username', 'first_name', 'last_name', 'email', 'phone', 'position', 'password1', 'password2']
         
         widgets = {
-            'username': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Логин'
-            }),
-            'first_name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Имя'
-            }),
-            'last_name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Фамилия'
-            }),
-            'email': forms.EmailInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Email'
-            }),
-            'phone': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': '+7 (***) ***-**-**)'
-            }),
-            'position': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Должность'
-            }),
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Логин'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Имя'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Фамилия'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+7 (999) 123-45-67'}),
+            'position': forms.Select(attrs={'class': 'form-control'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field_name not in ['position']:
+                field.widget.attrs['class'] = 'search_field_input'
+
+
+class UserApprovalForm(forms.ModelForm):
+    """Форма для подтверждения пользователя админом"""
+    
+    class Meta:
+        model = User
+        fields = ['is_approved', 'position']
+        widgets = {
+            'is_approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'position': forms.Select(attrs={'class': 'form-control'}),
         }
 
 

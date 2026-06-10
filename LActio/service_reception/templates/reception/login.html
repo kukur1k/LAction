@@ -7,7 +7,19 @@
     <div class="form_container">
         <div class="main_card">
             <div class="main_card_header">Вход</div>
-            <form method="post" class="login_form">
+            
+            {% if messages %}
+                {% for message in messages %}
+                <div class="form_error" style="margin-bottom: 15px; 
+                    {% if message.tags == 'success' %}background-color: #d4edda; color: #155724;
+                    {% elif message.tags == 'error' %}background-color: #f8d7da; color: #721c24;
+                    {% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+            
+            <form method="post">
                 {% csrf_token %}
                 <div class="form_field">
                     <label>Имя пользователя</label>
@@ -17,11 +29,6 @@
                     <label>Пароль</label>
                     <input type="password" name="password" required class="search_field_input">
                 </div>
-                {% if form.errors %}
-                <div class="form_error">
-                    Неверное имя пользователя или пароль
-                </div>
-                {% endif %}
                 <div class="flex_buttons">
                     <button type="submit" class="btn_success">Войти</button>
                     <a href="{% url 'service_reception:register' %}" class="btn_secondary">Регистрация</a>
