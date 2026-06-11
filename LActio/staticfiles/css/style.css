@@ -320,11 +320,6 @@ body {
     transition: all 0.3s;
 }
 
-.view_button:hover {
-    background-color: #3498db;
-    transform: translateY(-2px);
-}
-
 .view_button_active {
     background-color: #3498db;
     color: white;
@@ -653,5 +648,3 @@ body {
 .text_center {
     text-align: center;
 }
-
-

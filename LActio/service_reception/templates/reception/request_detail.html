@@ -1,8 +1,11 @@
 {% extends 'reception/base.html' %}
+{% load static %}
 
 {% block title %}Заявка {{ repair_request.request_number }}{% endblock %}
 
 {% block content %}
+
+
 <div class="flex_between mb_20">
     <h1>Заявка {{ repair_request.request_number }}</h1>
     <div class="flex_buttons">
@@ -112,33 +115,41 @@
     
     {% if repair_request.status == 'active' %}
     <div class="car_map_wrapper">
-        <div class="view_buttons_panel">
+        <div class="view_buttons_panel" id="viewButtons">
             {% for view in car_views %}
-            <button class="view_button" disabled>{{ view.name }}</button>
+            <button type="button" class="view_button" data-view-id="{{ view.id }}" data-image="{{ view.image_url }}">
+                {{ view.name }}
+            </button>
             {% endfor %}
         </div>
+        
         <div class="car_image_wrapper">
-            <img class="car_scheme_image" src="{{ car_views.first.image_url|default:'/static/images/car_front.svg' }}">
+            <img id="carImage" class="car_scheme_image" src="{{ car_views.first.image_url|default:'/static/images/auto_front.jpg' }}" alt="Схема автомобиля">
+            <div id="markersContainer" class="markers_container"></div>
         </div>
+        
         <div class="text_center" style="padding: 20px;">
             <p><strong>Список отмеченных повреждений:</strong></p>
-            {% if damage_markers %}
-                {% for marker in damage_markers %}
-                <div class="damage_list_item">
-                    <strong>{{ marker.car_view.name }}</strong>
-                    <p>Тип: {{ marker.damage_type.name|default:"Не указан" }}</p>
-                    <p>Описание: {{ marker.description|default:"-" }}</p>
-                    {% if marker.photo %}
-                    <img src="{{ marker.photo.url }}" class="damage_photo">
-                    {% endif %}
-                </div>
-                {% endfor %}
-            {% else %}
-                <p>Нет добавленных повреждений</p>
-            {% endif %}
+            <div id="damageList">
+                {% if damage_markers %}
+                    {% for marker in damage_markers %}
+                    <div class="damage_list_item" data-marker-id="{{ marker.id }}" data-view="{{ marker.car_view.id }}" data-x="{{ marker.x }}" data-y="{{ marker.y }}">
+                        <strong>{{ marker.car_view.name }}</strong>
+                        <p>Тип: {{ marker.damage_type.name|default:"Не указан" }}</p>
+                        <p>Описание: {{ marker.description|default:"-" }}</p>
+                        {% if marker.photo %}
+                        <img src="{{ marker.photo.url }}" class="damage_photo">
+                        {% endif %}
+                        <button type="button" class="btn_danger btn_small delete-marker" data-id="{{ marker.id }}">Удалить</button>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>Нет добавленных повреждений</p>
+                {% endif %}
+            </div>
         </div>
     </div>
-    {% elif repair_request.status == 'new' %}
+    {% elif repair_request.status == 'draft' %}
     <div class="text_center" style="padding: 40px;">
         <p>Осмотр ещё не начат.</p>
         <p>Нажмите "Начать осмотр" чтобы добавить отметки повреждений.</p>
@@ -164,4 +175,63 @@
     </div>
     {% endif %}
 </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const viewButtons = document.querySelectorAll('#viewButtons .view_button');
+    const carImage = document.getElementById('carImage');
+    
+    if (viewButtons.length > 0 && carImage) {
+        viewButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                viewButtons.forEach(btn => btn.classList.remove('view_button_active'));
+                this.classList.add('view_button_active');
+                
+                const newImage = this.getAttribute('data-image');
+                if (newImage) {
+                    carImage.src = newImage;
+                }
+            });
+        });
+        
+        viewButtons[0].classList.add('view_button_active');
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    document.querySelectorAll('.delete-marker').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const markerId = this.getAttribute('data-id');
+            if (confirm('Удалить отметку?')) {
+                fetch(`/api/marker/${markerId}/delete/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    }
+                });
+            }
+        });
+    });
+</script>
 {% endblock %}
