@@ -219,12 +219,6 @@
             const markerView = marker.getAttribute('data-view-id');
             if (markerView === currentView) {
                 marker.style.display = 'block';
-                const x = marker.getAttribute('data-x');
-                const y = marker.getAttribute('data-y');
-                if (x && y) {
-                    marker.style.left = x + '%';
-                    marker.style.top = y + '%';
-                }
             } else {
                 marker.style.display = 'none';
             }
@@ -238,14 +232,18 @@
         
         {% for marker in damage_markers %}
         {% if marker.x is not None and marker.y is not None %}
+        // Используем floatformat для правильного форматирования чисел (точка вместо запятой)
+        var markerX = '{{ marker.x|floatformat:"1" }}';
+        var markerY = '{{ marker.y|floatformat:"1" }}';
+        
         var newMarker = document.createElement('div');
         newMarker.className = 'damage_marker';
-        newMarker.style.left = '{{ marker.x }}%';
-        newMarker.style.top = '{{ marker.y }}%';
+        newMarker.style.left = markerX + '%';
+        newMarker.style.top = markerY + '%';
         newMarker.setAttribute('data-marker-id', '{{ marker.id }}');
         newMarker.setAttribute('data-view-id', '{{ marker.car_view.id }}');
-        newMarker.setAttribute('data-x', '{{ marker.x }}');
-        newMarker.setAttribute('data-y', '{{ marker.y }}');
+        newMarker.setAttribute('data-x', markerX);
+        newMarker.setAttribute('data-y', markerY);
         newMarker.title = '{{ marker.damage_type.name|default:"Повреждение" }}';
         
         newMarker.addEventListener('click', function(e) {
@@ -388,8 +386,8 @@
         if (carImage) {
             carImage.addEventListener('click', function(e) {
                 const rect = e.target.getBoundingClientRect();
-                const x = ((e.clientX - rect.left) / rect.width) * 100;
-                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                var x = ((e.clientX - rect.left) / rect.width) * 100;
+                var y = ((e.clientY - rect.top) / rect.height) * 100;
                 pendingX = Math.round(x * 10) / 10;
                 pendingY = Math.round(y * 10) / 10;
                 openModal();
@@ -475,7 +473,15 @@
             });
         }
         
-        drawMarkers();
+        if (carImage) {
+            if (carImage.complete) {
+                drawMarkers();
+            } else {
+                carImage.onload = function() {
+                    drawMarkers();
+                };
+            }
+        }
     });
 </script>
 {% endblock %}

@@ -298,72 +298,6 @@ body {
     margin-bottom: 10px;
 }
 
-.car_map_wrapper {
-    background: #f8f9fa;
-    border-radius: 12px;
-    padding: 20px;
-}
-
-.view_buttons_panel {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-}
-
-.view_button {
-    padding: 8px 16px;
-    background-color: #ecf0f1;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.view_button:hover {
-    background-color: #3498db;
-    transform: translateY(-2px);
-}
-
-.view_button_active {
-    background-color: #3498db;
-    color: white;
-}
-
-.car_image_wrapper {
-    position: relative;
-    display: inline-block;
-    width: 100%;
-    text-align: center;
-}
-
-.car_scheme_image {
-    max-width: 100%;
-    height: auto;
-    cursor: crosshair;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-}
-
-.damage_marker {
-    position: absolute;
-    width: 24px;
-    height: 24px;
-    background-color: #e74c3c;
-    border: 2px solid white;
-    border-radius: 50%;
-    cursor: pointer;
-    transform: translate(-50%, -50%);
-    transition: all 0.2s;
-    box-shadow: 0 0 5px rgba(0,0,0,0.3);
-}
-
-.damage_marker:hover {
-    width: 30px;
-    height: 30px;
-    background-color: #c0392b;
-}
-
 .info_grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -514,14 +448,20 @@ body {
 
 .message_success {
     background-color: #d4edda;
+    color: #155724;
+    margin-bottom: 15px;
 }
 
 .message_error {
     background-color: #f8d7da;
+    color: #721c24;
+    margin-bottom: 15px;
 }
 
 .message_warning {
     background-color: #fff3cd;
+    color: #856404;
+    margin-bottom: 15px;
 }
 
 .list_unstyled {
@@ -542,106 +482,86 @@ body {
     margin-top: 8px;
 }
 
-.register_form .form_field {
+/* ===== Стили для осмотра автомобиля ===== */
+.car_inspection_section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.view_buttons_panel {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
     margin-bottom: 20px;
 }
 
-.register_form label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: #333;
+.view_btn {
+    padding: 10px 20px;
+    background-color: #e9ecef;
+    border: 2px solid #dee2e6;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
 }
 
-.register_form input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 1rem;
+.view_btn.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
 }
 
-.register_form input:focus {
-    outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
-}
-
-.register_form .form_error {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 10px;
-    border-radius: 6px;
-    margin-bottom: 15px;
-}
-
-.register_form .form_error p {
-    margin: 5px 0;
-}
-
-.message_success {
-    background-color: #d4edda;
-    color: #155724;
-    margin-bottom: 15px;
-}
-
-.message_error {
-    background-color: #f8d7da;
-    color: #721c24;
-    margin-bottom: 15px;
-}
-
-.message_warning {
-    background-color: #fff3cd;
-    color: #856404;
-    margin-bottom: 15px;
-}
-
-.view_button_active {
-    background-color: #007bff !important;
-    color: white !important;
-}
-
-.markers_container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
+.view_btn:hover {
+    background-color: #dee2e6;
 }
 
 .car_image_wrapper {
     position: relative;
-    display: inline-block;
-    width: 100%;
     text-align: center;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 400px;
 }
 
 .car_scheme_image {
     max-width: 100%;
     height: auto;
     cursor: crosshair;
-    border-radius: 8px;
+    display: block;
+    margin: 0 auto;
+}
+
+.markers_container {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    bottom: 20px;
+    pointer-events: none;
 }
 
 .damage_marker {
     position: absolute;
     width: 24px;
     height: 24px;
-    background-color: red;
+    background-color: #dc3545;
     border: 2px solid white;
     border-radius: 50%;
     cursor: pointer;
     transform: translate(-50%, -50%);
     pointer-events: auto;
     box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    transition: all 0.2s;
+    z-index: 10;
 }
 
 .damage_marker:hover {
     width: 30px;
     height: 30px;
-    background-color: darkred;
+    background-color: #bd2130;
 }
 
 .delete-marker {
@@ -650,12 +570,7 @@ body {
     font-size: 12px;
 }
 
-.text_center {
-    text-align: center;
-}
-
-
-
+/* ===== Модальное окно ===== */
 .modal {
     position: fixed;
     z-index: 1000;
@@ -716,53 +631,65 @@ body {
     border-radius: 8px;
 }
 
-.view_buttons_panel {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
+/* ===== Регистрация ===== */
+.register_form .form_field {
     margin-bottom: 20px;
 }
 
-.view_btn {
-    padding: 10px 20px;
-    background-color: #e9ecef;
-    border: 2px solid #dee2e6;
-    border-radius: 30px;
-    cursor: pointer;
-    transition: all 0.2s;
+.register_form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
 }
 
-.view_btn.active {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
+.register_form input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
 }
 
-.view_btn:hover {
-    background-color: #dee2e6;
+.register_form input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
+}
+
+.register_form .form_error {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+.register_form .form_error p {
+    margin: 5px 0;
 }
 
 .car_image_wrapper {
     position: relative;
+    display: inline-block;
+    width: 100%;
     text-align: center;
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    padding: 20px;
 }
 
 .car_scheme_image {
     max-width: 100%;
     height: auto;
     cursor: crosshair;
+    display: block;
+    margin: 0 auto;
 }
 
 .markers_container {
     position: absolute;
-    top: 20px;
+    top: 0;
     left: 0;
-    right: 0;
-    bottom: 20px;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
 }
 
@@ -776,8 +703,6 @@ body {
     cursor: pointer;
     transform: translate(-50%, -50%);
     pointer-events: auto;
-    box-shadow: 0 0 5px rgba(0,0,0,0.3);
-    transition: all 0.2s;
     z-index: 10;
 }
 
@@ -786,4 +711,3 @@ body {
     height: 30px;
     background-color: #bd2130;
 }
-
