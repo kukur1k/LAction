@@ -349,3 +349,23 @@ def add_damage_marker(request, request_id):
             return JsonResponse({'success': False, 'error': str(e)})
     
     return JsonResponse({'success': False, 'error': 'Invalid method'})
+
+@csrf_exempt
+def upload_marker_photo(request, marker_id):
+    """Загрузка фото для отметки повреждения"""
+    if request.method == 'POST' and request.FILES.get('photo'):
+        marker = get_object_or_404(DamageMarker, id=marker_id)
+        marker.photo = request.FILES['photo']
+        marker.save()
+        return JsonResponse({'success': True, 'photo_url': marker.photo.url})
+    return JsonResponse({'success': False, 'error': 'No photo provided'})
+
+
+@csrf_exempt
+def delete_marker(request, marker_id):
+    """Удаление отметки повреждения"""
+    if request.method == 'DELETE':
+        marker = get_object_or_404(DamageMarker, id=marker_id)
+        marker.delete()
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'error': 'Invalid method'})

@@ -1,4 +1,5 @@
 {% extends 'reception/base.html' %}
+{% load static %}
 
 {% block title %}Заявка {{ repair_request.request_number }}{% endblock %}
 
@@ -111,37 +112,24 @@
     <div class="main_card_header">Осмотр автомобиля</div>
     
     {% if repair_request.status == 'active' %}
-    <div class="car_map_wrapper">
-        <div class="view_buttons_panel">
-            {% for view in car_views %}
-            <button class="view_button" disabled>{{ view.name }}</button>
-            {% endfor %}
+    <div class="car_inspection_section">
+        <div class="view_buttons_panel" id="viewButtons">
+            <button type="button" class="view_btn active" data-view-id="1" data-image="/static/images/auto_front.jpg">Вид спереди</button>
+            <button type="button" class="view_btn" data-view-id="2" data-image="/static/images/auto_back.jpg">Вид сзади</button>
+            <button type="button" class="view_btn" data-view-id="3" data-image="/static/images/auto_left.jpg">Вид слева</button>
+            <button type="button" class="view_btn" data-view-id="4" data-image="/static/images/auto_right.jpg">Вид справа</button>
+            <button type="button" class="view_btn" data-view-id="5" data-image="/static/images/auto_top.jpg">Вид сверху</button>
         </div>
+        
         <div class="car_image_wrapper">
-            <img class="car_scheme_image" src="{{ car_views.first.image_url|default:'/static/images/car_front.svg' }}">
-        </div>
-        <div class="text_center" style="padding: 20px;">
-            <p><strong>Список отмеченных повреждений:</strong></p>
-            {% if damage_markers %}
-                {% for marker in damage_markers %}
-                <div class="damage_list_item">
-                    <strong>{{ marker.car_view.name }}</strong>
-                    <p>Тип: {{ marker.damage_type.name|default:"Не указан" }}</p>
-                    <p>Описание: {{ marker.description|default:"-" }}</p>
-                    {% if marker.photo %}
-                    <img src="{{ marker.photo.url }}" class="damage_photo">
-                    {% endif %}
-                </div>
-                {% endfor %}
-            {% else %}
-                <p>Нет добавленных повреждений</p>
-            {% endif %}
+            <img id="carImage" class="car_scheme_image" src="/static/images/auto_front.jpg" alt="Схема автомобиля">
+            <div id="markersContainer" class="markers_container"></div>
         </div>
     </div>
-    {% elif repair_request.status == 'new' %}
+    {% elif repair_request.status == 'draft' %}
     <div class="text_center" style="padding: 40px;">
         <p>Осмотр ещё не начат.</p>
-        <p>Нажмите "Начать осмотр" чтобы добавить отметки повреждений.</p>
+        <p>Нажмите "Начать осмотр" чтобы добавлять отметки повреждений.</p>
     </div>
     {% else %}
     <div class="text_center" style="padding: 40px;">
@@ -164,4 +152,336 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Модальное окно -->
+<div id="damageModal" class="modal" style="display: none;">
+    <div class="modal_content">
+        <span class="modal_close">&times;</span>
+        <h3>Добавить повреждение</h3>
+        <form id="damageForm">
+            <div class="form_field">
+                <label>Тип повреждения</label>
+                <select id="damageType" class="search_field_input" required>
+                    <option value="">Выберите тип...</option>
+                    {% for dt in damage_types %}
+                    <option value="{{ dt.id }}">{{ dt.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form_field">
+                <label>Описание</label>
+                <textarea id="damageDescription" class="search_field_input" rows="3" placeholder="Опишите повреждение..."></textarea>
+            </div>
+            <div class="form_field">
+                <label>Фото</label>
+                <input type="file" id="damagePhoto" accept="image/*" class="search_field_input">
+                <div id="photoPreview" class="photo_preview"></div>
+            </div>
+            <div class="modal_buttons">
+                <button type="button" id="saveDamageBtn" class="btn_success">Сохранить</button>
+                <button type="button" id="cancelDamageBtn" class="btn_secondary">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentViewId = null;
+    let pendingX = null;
+    let pendingY = null;
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    function getCurrentViewId() {
+        const activeBtn = document.querySelector('.view_btn.active');
+        return activeBtn ? activeBtn.getAttribute('data-view-id') : null;
+    }
+    
+    function filterMarkersByView() {
+        const currentView = getCurrentViewId();
+        const markers = document.querySelectorAll('.damage_marker');
+        markers.forEach(marker => {
+            const markerView = marker.getAttribute('data-view-id');
+            if (markerView === currentView) {
+                marker.style.display = 'block';
+            } else {
+                marker.style.display = 'none';
+            }
+        });
+    }
+    
+    function drawMarkers() {
+        const container = document.getElementById('markersContainer');
+        if (!container) return;
+        container.innerHTML = '';
+        
+        {% for marker in damage_markers %}
+        {% if marker.x is not None and marker.y is not None %}
+        // Используем stringformat и заменяем запятую на точку
+        var markerX = '{{ marker.x|stringformat:"s"|cut:"," }}';
+        var markerY = '{{ marker.y|stringformat:"s"|cut:"," }}';
+        
+        var newMarker = document.createElement('div');
+        newMarker.className = 'damage_marker';
+        newMarker.style.left = markerX + '%';
+        newMarker.style.top = markerY + '%';
+        newMarker.setAttribute('data-marker-id', '{{ marker.id }}');
+        newMarker.setAttribute('data-view-id', '{{ marker.car_view.id }}');
+        newMarker.setAttribute('data-x', markerX);
+        newMarker.setAttribute('data-y', markerY);
+        newMarker.title = '{{ marker.damage_type.name|default:"Повреждение" }}';
+        
+        newMarker.addEventListener('click', function(e) {
+            e.stopPropagation();
+            {% if marker.photo %}
+            var photoUrl = '{{ marker.photo.url }}';
+            {% else %}
+            var photoUrl = '';
+            {% endif %}
+            showMarkerDetails({{ marker.id }}, '{{ marker.damage_type.name|default:"" }}', '{{ marker.description|default:""|escapejs }}', photoUrl);
+        });
+        
+        container.appendChild(newMarker);
+        {% endif %}
+        {% endfor %}
+        
+        filterMarkersByView();
+}
+    
+    function showMarkerDetails(markerId, damageType, description, photoUrl) {
+        var photoHtml = '';
+        if (photoUrl && photoUrl !== '') {
+            photoHtml = '<div class="form_field"><label>Фото</label><img src="' + photoUrl + '" class="modal_photo"></div>';
+        }
+        
+        var modalHtml = `
+            <div id="markerDetailModal" class="modal" style="display: flex;">
+                <div class="modal_content">
+                    <span class="modal_close" onclick="closeMarkerDetail()">&times;</span>
+                    <h3>Информация о повреждении</h3>
+                    <div class="form_field">
+                        <label>Тип повреждения</label>
+                        <p><strong>${damageType || 'Не указан'}</strong></p>
+                    </div>
+                    <div class="form_field">
+                        <label>Описание</label>
+                        <p>${description || 'Нет описания'}</p>
+                    </div>
+                    ${photoHtml}
+                    <div class="modal_buttons">
+                        <button type="button" class="btn_danger" onclick="deleteMarker(${markerId})">Удалить</button>
+                        <button type="button" class="btn_secondary" onclick="closeMarkerDetail()">Закрыть</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+    
+    window.closeMarkerDetail = function() {
+        const modal = document.getElementById('markerDetailModal');
+        if (modal) modal.remove();
+    };
+    
+    window.deleteMarker = function(markerId) {
+        if (confirm('Удалить отметку?')) {
+            fetch(`/api/markers/${markerId}/delete/`, {
+                method: 'DELETE',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const marker = document.querySelector(`.damage_marker[data-marker-id="${markerId}"]`);
+                    if (marker) marker.remove();
+                    closeMarkerDetail();
+                }
+            });
+        }
+    };
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const viewButtons = document.querySelectorAll('.view_btn');
+        const carImage = document.getElementById('carImage');
+        
+        if (viewButtons.length > 0) {
+            viewButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    viewButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    currentViewId = this.getAttribute('data-view-id');
+                    const newImage = this.getAttribute('data-image');
+                    if (newImage) {
+                        carImage.src = newImage;
+                        carImage.onload = function() {
+                            drawMarkers();
+                        };
+                    }
+                    drawMarkers();
+                });
+            });
+            const activeBtn = document.querySelector('.view_btn.active');
+            currentViewId = activeBtn ? activeBtn.getAttribute('data-view-id') : viewButtons[0].getAttribute('data-view-id');
+        }
+        
+        const modal = document.getElementById('damageModal');
+        const saveBtn = document.getElementById('saveDamageBtn');
+        const cancelBtn = document.getElementById('cancelDamageBtn');
+        const closeSpan = document.querySelector('.modal_close');
+        
+        function openModal() {
+            modal.style.display = 'flex';
+            document.getElementById('damageType').value = '';
+            document.getElementById('damageDescription').value = '';
+            document.getElementById('damagePhoto').value = '';
+            document.getElementById('photoPreview').innerHTML = '';
+        }
+        
+        function closeModal() {
+            modal.style.display = 'none';
+            pendingX = null;
+            pendingY = null;
+        }
+        
+        if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+        if (closeSpan) closeSpan.addEventListener('click', closeModal);
+        
+        window.addEventListener('click', function(e) {
+            if (e.target === modal) closeModal();
+        });
+        
+        const photoInput = document.getElementById('damagePhoto');
+        if (photoInput) {
+            photoInput.addEventListener('change', function(e) {
+                const preview = document.getElementById('photoPreview');
+                preview.innerHTML = '';
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const img = document.createElement('img');
+                        img.src = ev.target.result;
+                        img.className = 'photo_preview_img';
+                        preview.appendChild(img);
+                    };
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+        }
+        
+        if (carImage) {
+            carImage.addEventListener('click', function(e) {
+                const rect = e.target.getBoundingClientRect();
+                var x = ((e.clientX - rect.left) / rect.width) * 100;
+                var y = ((e.clientY - rect.top) / rect.height) * 100;
+                pendingX = Math.round(x * 10) / 10;
+                pendingY = Math.round(y * 10) / 10;
+                openModal();
+            });
+        }
+        
+        if (saveBtn) {
+            saveBtn.addEventListener('click', async function() {
+                const damageTypeId = document.getElementById('damageType').value;
+                const description = document.getElementById('damageDescription').value;
+                const photoFile = document.getElementById('damagePhoto').files[0];
+                
+                if (!damageTypeId) {
+                    alert('Выберите тип повреждения');
+                    return;
+                }
+                
+                const currentView = getCurrentViewId();
+                if (!currentView) {
+                    alert('Выберите вид автомобиля');
+                    return;
+                }
+                
+                try {
+                    const markerResponse = await fetch(`/api/requests/{{ repair_request.id }}/add-marker/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({
+                            car_view_id: currentView,
+                            damage_type_id: damageTypeId,
+                            x: pendingX,
+                            y: pendingY,
+                            description: description
+                        })
+                    });
+                    
+                    const markerResult = await markerResponse.json();
+                    
+                    if (markerResult.success) {
+                        let photoUrl = '';
+                        if (photoFile) {
+                            const formData = new FormData();
+                            formData.append('photo', photoFile);
+                            const photoResponse = await fetch(`/api/markers/${markerResult.marker_id}/upload-photo/`, {
+                                method: 'POST',
+                                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                                body: formData
+                            });
+                            const photoResult = await photoResponse.json();
+                            if (photoResult.success) photoUrl = photoResult.photo_url;
+                        }
+                        
+                        const container = document.getElementById('markersContainer');
+                        const newMarkerDiv = document.createElement('div');
+                        newMarkerDiv.className = 'damage_marker';
+                        newMarkerDiv.style.left = pendingX + '%';
+                        newMarkerDiv.style.top = pendingY + '%';
+                        newMarkerDiv.setAttribute('data-marker-id', markerResult.marker_id);
+                        newMarkerDiv.setAttribute('data-view-id', currentView);
+                        newMarkerDiv.setAttribute('data-x', pendingX);
+                        newMarkerDiv.setAttribute('data-y', pendingY);
+                        const damageTypeText = document.getElementById('damageType').options[document.getElementById('damageType').selectedIndex]?.text || 'Повреждение';
+                        newMarkerDiv.title = damageTypeText;
+                        
+                        newMarkerDiv.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            showMarkerDetails(markerResult.marker_id, damageTypeText, description, photoUrl);
+                        });
+                        
+                        container.appendChild(newMarkerDiv);
+                        filterMarkersByView();
+                        closeModal();
+                    } else {
+                        alert('Ошибка: ' + (markerResult.error || 'Не удалось сохранить'));
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Ошибка при сохранении');
+                }
+            });
+        }
+        
+        if (carImage) {
+            if (carImage.complete) {
+                drawMarkers();
+            } else {
+                carImage.onload = function() {
+                    drawMarkers();
+                };
+            }
+        }
+    });
+</script>
 {% endblock %}

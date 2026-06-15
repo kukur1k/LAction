@@ -298,67 +298,6 @@ body {
     margin-bottom: 10px;
 }
 
-.car_map_wrapper {
-    background: #f8f9fa;
-    border-radius: 12px;
-    padding: 20px;
-}
-
-.view_buttons_panel {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-}
-
-.view_button {
-    padding: 8px 16px;
-    background-color: #ecf0f1;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.view_button_active {
-    background-color: #3498db;
-    color: white;
-}
-
-.car_image_wrapper {
-    position: relative;
-    display: inline-block;
-    width: 100%;
-    text-align: center;
-}
-
-.car_scheme_image {
-    max-width: 100%;
-    height: auto;
-    cursor: crosshair;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-}
-
-.damage_marker {
-    position: absolute;
-    width: 24px;
-    height: 24px;
-    background-color: #e74c3c;
-    border: 2px solid white;
-    border-radius: 50%;
-    cursor: pointer;
-    transform: translate(-50%, -50%);
-    transition: all 0.2s;
-    box-shadow: 0 0 5px rgba(0,0,0,0.3);
-}
-
-.damage_marker:hover {
-    width: 30px;
-    height: 30px;
-    background-color: #c0392b;
-}
-
 .info_grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -509,14 +448,20 @@ body {
 
 .message_success {
     background-color: #d4edda;
+    color: #155724;
+    margin-bottom: 15px;
 }
 
 .message_error {
     background-color: #f8d7da;
+    color: #721c24;
+    margin-bottom: 15px;
 }
 
 .message_warning {
     background-color: #fff3cd;
+    color: #856404;
+    margin-bottom: 15px;
 }
 
 .list_unstyled {
@@ -537,6 +482,156 @@ body {
     margin-top: 8px;
 }
 
+/* ===== Стили для осмотра автомобиля ===== */
+.car_inspection_section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.view_buttons_panel {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.view_btn {
+    padding: 10px 20px;
+    background-color: #e9ecef;
+    border: 2px solid #dee2e6;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.view_btn.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.view_btn:hover {
+    background-color: #dee2e6;
+}
+
+.car_image_wrapper {
+    position: relative;
+    text-align: center;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 400px;
+}
+
+.car_scheme_image {
+    max-width: 100%;
+    height: auto;
+    cursor: crosshair;
+    display: block;
+    margin: 0 auto;
+}
+
+.markers_container {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    bottom: 20px;
+    pointer-events: none;
+}
+
+.damage_marker {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background-color: #dc3545;
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.damage_marker:hover {
+    width: 30px;
+    height: 30px;
+    background-color: #bd2130;
+}
+
+.delete-marker {
+    margin-top: 5px;
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+/* ===== Модальное окно ===== */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal_content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modal_close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #aaa;
+}
+
+.modal_close:hover {
+    color: #333;
+}
+
+.modal_buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.modal_photo {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.photo_preview {
+    margin-top: 10px;
+}
+
+.photo_preview_img {
+    max-width: 100px;
+    border-radius: 8px;
+}
+
+/* ===== Регистрация ===== */
 .register_form .form_field {
     margin-bottom: 20px;
 }
@@ -572,4 +667,47 @@ body {
 
 .register_form .form_error p {
     margin: 5px 0;
+}
+
+.car_image_wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+}
+
+.car_scheme_image {
+    max-width: 100%;
+    height: auto;
+    cursor: crosshair;
+    display: block;
+    margin: 0 auto;
+}
+
+.markers_container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.damage_marker {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background-color: #dc3545;
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+    z-index: 10;
+}
+
+.damage_marker:hover {
+    width: 30px;
+    height: 30px;
+    background-color: #bd2130;
 }

@@ -97,3 +97,5 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 AUTH_USER_MODEL = 'service_reception.User'
+
+USE_L10N = False 
