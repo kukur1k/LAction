@@ -21,7 +21,6 @@
                         {% if user.is_staff or user.is_superuser %}
                             <li><a class="navbar_link" href="{% url 'service_reception:admin_dashboard' %}">Админ панель</a></li>
                         {% endif %}
-                        <li><a class="navbar_link" href="{% url 'service_reception:pending_users' %}">Подтверждение аккаунтов</a></li>
                     {% endif %}
                     {% if user.is_authenticated %}
                     <li><a class="navbar_link" href="#">{{ user.get_full_name|default:user.username }}</a></li>

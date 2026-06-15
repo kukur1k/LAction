@@ -232,9 +232,9 @@
         
         {% for marker in damage_markers %}
         {% if marker.x is not None and marker.y is not None %}
-        // Используем floatformat для правильного форматирования чисел (точка вместо запятой)
-        var markerX = '{{ marker.x|floatformat:"1" }}';
-        var markerY = '{{ marker.y|floatformat:"1" }}';
+        // Используем stringformat и заменяем запятую на точку
+        var markerX = '{{ marker.x|stringformat:"s"|cut:"," }}';
+        var markerY = '{{ marker.y|stringformat:"s"|cut:"," }}';
         
         var newMarker = document.createElement('div');
         newMarker.className = 'damage_marker';
@@ -261,7 +261,7 @@
         {% endfor %}
         
         filterMarkersByView();
-    }
+}
     
     function showMarkerDetails(markerId, damageType, description, photoUrl) {
         var photoHtml = '';
