@@ -3,32 +3,43 @@
 {% block title %}Редактирование {{ user_obj.username }}{% endblock %}
 
 {% block content %}
-<div class="flex_between mb_20">
-    <h1>Редактирование пользователя: {{ user_obj.username }}</h1>
-    <a href="{% url 'service_reception:admin_users' %}" class="btn_secondary">Назад</a>
+
+<div class="page_header">
+    <div>
+        <div class="title">Редактирование пользователя</div>
+        <div class="subtitle">{{ user_obj.get_full_name|default:user_obj.username }}</div>
+    </div>
+    <div class="actions">
+        <a href="{% url 'service_reception:admin_users' %}" class="btn btn_secondary">Назад</a>
+    </div>
 </div>
 
 <div class="form_wrapper">
     <div class="form_container">
-        <div class="main_card">
-            <div class="main_card_header">Информация о пользователе</div>
+        <div class="card" style="padding: 24px;">
+            <div class="card_header">Информация о пользователе</div>
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 {% for field in form %}
                 <div class="form_field">
-                    <label>{{ field.label }}</label>
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
                     {% if field.help_text %}
-                    <small class="form_text">{{ field.help_text }}</small>
+                    <div class="form_text">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% if field.errors %}
+                    <div class="form_error">{{ field.errors }}</div>
                     {% endif %}
                 </div>
                 {% endfor %}
-                <div class="flex_buttons">
-                    <button type="submit" class="btn_success">Сохранить</button>
-                    <a href="{% url 'service_reception:admin_user_change_password' user_obj.id %}" class="btn_warning">Сменить пароль</a>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px;">
+                    <button type="submit" class="btn btn_success">Сохранить</button>
+                    <a href="{% url 'service_reception:admin_user_change_password' user_obj.id %}" class="btn btn_warning">Сменить пароль</a>
+                    <a href="{% url 'service_reception:admin_users' %}" class="btn btn_secondary">Отмена</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
 {% endblock %}

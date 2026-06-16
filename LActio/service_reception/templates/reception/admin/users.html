@@ -3,22 +3,38 @@
 {% block title %}Управление пользователями{% endblock %}
 
 {% block content %}
-<div class="flex_between mb_20">
-    <h1>Управление пользователями</h1>
-    <a href="{% url 'service_reception:admin_dashboard' %}" class="btn_secondary">Назад</a>
+
+<div class="page_header">
+    <div>
+        <div class="title">Управление пользователями</div>
+        <div class="subtitle">Всего: {{ users.count }}</div>
+    </div>
+    <div class="actions">
+        <a href="{% url 'service_reception:admin_dashboard' %}" class="btn btn_secondary">Назад</a>
+    </div>
 </div>
 
+<!-- Поиск -->
 <div class="search_section">
-    <form method="get" class="search_form_simple">
-        <input type="text" name="search" class="search_input_simple" placeholder="Поиск по имени, логину, email..." value="{{ search }}">
-        <button type="submit" class="btn_primary">Найти</button>
-        {% if search %}<a href="{% url 'service_reception:admin_users' %}" class="btn_secondary">Сбросить</a>{% endif %}
+    <div class="search_title">Поиск пользователей</div>
+    <form method="get" class="search_form">
+        <div class="search_field_group" style="grid-column: span 2;">
+            <input type="text" name="search" class="search_field_input" placeholder="Поиск по имени, логину, email..." value="{{ search }}">
+        </div>
+        <div class="search_buttons">
+            <button type="submit" class="btn btn_primary">Найти</button>
+            {% if search %}
+            <a href="{% url 'service_reception:admin_users' %}" class="btn btn_secondary">Сбросить</a>
+            {% endif %}
+        </div>
     </form>
 </div>
 
-<div class="main_card">
-    <div class="main_card_header">Пользователи ({{ users.count }})</div>
-    <div class="table-responsive">
+<!-- Таблица -->
+<div class="card">
+    <div class="card_header">Пользователи ({{ users.count }})</div>
+    {% if users %}
+    <div class="table_wrapper">
         <table class="data_table">
             <thead>
                 <tr>
@@ -35,7 +51,7 @@
             <tbody>
                 {% for u in users %}
                 <tr>
-                    <td class="data_table_cell">{{ u.username }}</td>
+                    <td class="data_table_cell"><strong>{{ u.username }}</strong></td>
                     <td class="data_table_cell">{{ u.get_full_name|default:"-" }}</td>
                     <td class="data_table_cell">{{ u.email|default:"-" }}</td>
                     <td class="data_table_cell">{{ u.phone|default:"-" }}</td>
@@ -55,16 +71,22 @@
                         {% endif %}
                     </td>
                     <td class="data_table_cell">
-                        <a href="{% url 'service_reception:admin_user_detail' u.id %}" class="btn_primary btn_small">Редактировать</a>
-                        {% if not u.is_approved %}
-                            <a href="{% url 'service_reception:admin_user_approve' u.id %}" class="btn_success btn_small">Подтвердить</a>
-                        {% endif %}
-                        <a href="{% url 'service_reception:admin_user_change_password' u.id %}" class="btn_warning btn_small">Сменить пароль</a>
+                        <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                            <a href="{% url 'service_reception:admin_user_detail' u.id %}" class="btn btn_primary btn_small">Ред.</a>
+                            {% if not u.is_approved %}
+                            <a href="{% url 'service_reception:admin_user_approve' u.id %}" class="btn btn_success btn_small">Подтв.</a>
+                            {% endif %}
+                            <a href="{% url 'service_reception:admin_user_change_password' u.id %}" class="btn btn_warning btn_small">Пароль</a>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {% else %}
+    <div class="empty_state">Пользователи не найдены</div>
+    {% endif %}
 </div>
+
 {% endblock %}

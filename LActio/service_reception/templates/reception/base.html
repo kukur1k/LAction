@@ -4,35 +4,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}LActio{% endblock %}</title>
+    <title>{% block title %}Приёмка авто{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <nav class="navbar_custom">
         <div class="main_container">
-            <div class="flex_between">
-                <a class="navbar_brand" href="{% url 'service_reception:home' %}">LActio</a>
+            <div class="nav_inner">
+                <a class="navbar_brand" href="{% url 'service_reception:home' %}">
+                    <img src="{% static 'images/logoo.png' %}" alt="СТО Приёмка" class="logo_img" style="height: 48px !important; width: auto !important;">
+                </a>
                 <ul class="navbar_menu">
-                    <li><a class="navbar_link" href="{% url 'service_reception:home' %}">Главная</a></li>
-                    <li><a class="navbar_link" href="{% url 'service_reception:request_list' %}">Заявки</a></li>
-                    <li><a class="navbar_link" href="{% url 'service_reception:request_create' %}">Новая заявка</a></li>
-                    {% if user.is_staff or user.position == 'admin' %}
-                        {% if user.is_staff or user.is_superuser %}
-                            <li><a class="navbar_link" href="{% url 'service_reception:admin_dashboard' %}">Админ панель</a></li>
-                        {% endif %}
-                    {% endif %}
+                    <li><a class="navbar_link {% if request.path == '/' %}active{% endif %}" href="{% url 'service_reception:home' %}">Главная</a></li>
+                    <li><a class="navbar_link {% if request.path == '/requests/' %}active{% endif %}" href="{% url 'service_reception:request_list' %}">Заявки</a></li>
+                    <li><a class="navbar_link {% if request.path == '/requests/create/' %}active{% endif %}" href="{% url 'service_reception:request_create' %}">Новая заявка</a></li>
+                    
                     {% if user.is_authenticated %}
-                    <li><a class="navbar_link" href="#">{{ user.get_full_name|default:user.username }}</a></li>
-                    <li>
-                        <form method="post" action="{% url 'service_reception:logout' %}" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn_secondary btn_small">Выйти</button>
-                        </form>
-                    </li>
+                        {% if user.is_staff %}
+                        <li><a class="navbar_link {% if '/admin-panel/' in request.path %}active{% endif %}" href="{% url 'service_reception:admin_dashboard' %}">Админ панель</a></li>
+                        {% endif %}
+                        <li class="nav_user">
+                            <span class="nav_username">{{ user.get_full_name|default:user.username }}</span>
+                            <form method="post" action="{% url 'service_reception:logout' %}" class="nav_logout_form">
+                                {% csrf_token %}
+                                <button type="submit" class="btn_logout">Выйти</button>
+                            </form>
+                        </li>
                     {% else %}
-                    <li><a class="navbar_link" href="{% url 'service_reception:register' %}">Регистрация</a></li>
-                    <li><a class="navbar_link" href="{% url 'service_reception:login' %}">Вход</a></li>
+                        <li><a class="btn btn_login" href="{% url 'service_reception:login' %}">Вход</a></li>
+                        <li><a class="btn btn_register" href="{% url 'service_reception:register' %}">Регистрация</a></li>
                     {% endif %}
                 </ul>
             </div>
@@ -42,12 +44,7 @@
     <main class="main_container">
         {% if messages %}
             {% for message in messages %}
-                <div class="main_card 
-                    {% if message.tags == 'success' %}message_success
-                    {% elif message.tags == 'error' %}message_error
-                    {% else %}message_warning{% endif %}">
-                    {{ message }}
-                </div>
+                <div class="alert alert_{{ message.tags }}">{{ message }}</div>
             {% endfor %}
         {% endif %}
 
@@ -56,7 +53,7 @@
 
     <footer class="footer_custom">
         <div class="main_container">
-            <p>© {% now "Y" %} LActio</p>
+            <p>© {% now "Y" %} СТО Приёмка автомобилей</p>
         </div>
     </footer>
 

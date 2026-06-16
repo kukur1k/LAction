@@ -3,8 +3,15 @@
 {% block title %}Админ панель{% endblock %}
 
 {% block content %}
-<h1 class="mb_20">Панель администратора</h1>
 
+<div class="page_header">
+    <div>
+        <div class="title">Панель администратора</div>
+        <div class="subtitle">Управление системой</div>
+    </div>
+</div>
+
+<!-- Статистика -->
 <div class="stat_grid">
     <div class="stat_card">
         <div class="stat_card_number">{{ total_users }}</div>
@@ -24,8 +31,13 @@
     </div>
 </div>
 
-<div class="flex_buttons" style="justify-content: center; gap: 20px;">
-    <a href="{% url 'service_reception:admin_users' %}" class="btn_primary">Управление пользователями</a>
-    <a href="{% url 'service_reception:pending_users' %}" class="btn_primary">Подтверждение аккаунтов</a>
+<!-- Быстрые действия -->
+<div class="card" style="text-align: center;">
+    <div class="card_header">Быстрые действия</div>
+    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <a href="{% url 'service_reception:admin_users' %}" class="btn btn_primary">Управление пользователями</a>
+        <a href="{% url 'service_reception:pending_users' %}" class="btn btn_warning">Подтверждение аккаунтов</a>
+    </div>
 </div>
+
 {% endblock %}

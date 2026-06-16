@@ -4,166 +4,126 @@
 {% block title %}Заявка {{ repair_request.request_number }}{% endblock %}
 
 {% block content %}
-<div class="flex_between mb_20">
-    <h1>Заявка {{ repair_request.request_number }}</h1>
-    <div class="flex_buttons">
+
+<!-- Хедер -->
+<div class="page_header">
+    <div>
+        <div class="title">Заявка <span class="number">{{ repair_request.request_number }}</span></div>
+        <div class="subtitle">
+            <span class="status_badge status_{{ repair_request.status }}">{{ repair_request.get_status_display }}</span>
+            <span>{{ repair_request.reception_date|date:"d.m.Y" }} {{ repair_request.reception_time|time:"H:i" }}</span>
+            <span>Пробег: {{ repair_request.mileage|default:"0" }} км</span>
+        </div>
+    </div>
+    <div class="actions">
         {% if repair_request.status == 'draft' %}
-            <a href="{% url 'service_reception:start_inspection' repair_request.pk %}" class="btn_success">Начать осмотр</a>
+            <a href="{% url 'service_reception:start_inspection' repair_request.pk %}" class="btn btn_success">Начать осмотр</a>
         {% elif repair_request.status == 'active' %}
-            <a href="{% url 'service_reception:complete_request' repair_request.pk %}" class="btn_primary">Завершить заявку</a>
+            <a href="{% url 'service_reception:complete_request' repair_request.pk %}" class="btn btn_primary">Завершить</a>
         {% endif %}
-        
         {% if repair_request.status == 'draft' or repair_request.status == 'active' %}
-            <a href="{% url 'service_reception:request_update' repair_request.pk %}" class="btn_warning">Редактировать</a>
-            <a href="{% url 'service_reception:request_delete' repair_request.pk %}" class="btn_danger">Удалить</a>
+            <a href="{% url 'service_reception:request_update' repair_request.pk %}" class="btn btn_warning">Редактировать</a>
+            <a href="{% url 'service_reception:request_delete' repair_request.pk %}" class="btn btn_danger">Удалить</a>
         {% endif %}
-        
-        <a href="{% url 'service_reception:request_list' %}" class="btn_secondary">Назад</a>
+        <a href="{% url 'service_reception:request_list' %}" class="btn btn_secondary">Назад</a>
     </div>
 </div>
 
-<div class="info_grid">
-    <div class="info_section">
-        <div class="info_section_title">Информация о клиенте</div>
-        <div class="info_row">
-            <div class="info_label">Клиент</div>
-            <div class="info_value">{{ repair_request.client_name }}</div>
-        </div>
-        <div class="info_row">
-            <div class="info_label">Телефон</div>
-            <div class="info_value">{{ repair_request.client_phone }}</div>
-        </div>
-        <div class="info_row">
-            <div class="info_label">Дата приёма</div>
-            <div class="info_value">{{ repair_request.reception_date|date:"d.m.Y" }}</div>
-        </div>
-        <div class="info_row">
-            <div class="info_label">Время</div>
-            <div class="info_value">{{ repair_request.reception_time|time:"H:i" }}</div>
-        </div>
-        <div class="info_row">
-            <div class="info_label">Статус</div>
-            <div class="info_value">
-                <span class="status_badge status_{{ repair_request.status }}">
-                    {{ repair_request.get_status_display }}
-                </span>
-            </div>
+<!-- Плитки -->
+<div class="tile_grid">
+    <div class="tile tile_accent">
+        <div class="label">Клиент</div>
+        <div class="value">{{ repair_request.client_name }}</div>
+        <div class="sub">{{ repair_request.client_phone }}</div>
+    </div>
+
+    <div class="tile">
+        <div class="label">Автомобиль</div>
+        <div class="value">{{ repair_request.car_brand }}</div>
+        <div class="sub">{{ repair_request.car_model }} · {{ repair_request.license_plate }}</div>
+    </div>
+
+    <div class="tile tile_status">
+        <div class="label">Статус</div>
+        <div><span class="status_badge status_{{ repair_request.status }}">{{ repair_request.get_status_display }}</span></div>
+        <div class="sub">VIN: {{ repair_request.vin|default:"Не указан" }}</div>
+    </div>
+
+    <div class="tile tile_more" onclick="openDetailModal()">
+        <div class="label">Подробнее</div>
+        <div class="value" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 2px;">
+            <span>все данные</span>
+            <span class="arrow">→</span>
         </div>
     </div>
 
-    <div class="info_section">
-        <div class="info_section_title">Информация об автомобиле</div>
-        <div class="info_row">
-            <div class="info_label">Марка</div>
-            <div class="info_value">{{ repair_request.car_brand }}</div>
-        </div>
-        <div class="info_row">
-            <div class="info_label">Модель</div>
-            <div class="info_value">{{ repair_request.car_model }}</div>
-        </div>
-        <div class="info_row">
-            <div class="info_label">Гос номер</div>
-            <div class="info_value">{{ repair_request.license_plate }}</div>
-        </div>
-        <div class="info_row">
-            <div class="info_label">VIN</div>
-            <div class="info_value">{{ repair_request.vin|default:"-" }}</div>
-        </div>
-        <div class="info_row">
-            <div class="info_label">Пробег</div>
-            <div class="info_value">{{ repair_request.mileage|default:"-" }} км</div>
-        </div>
-        {% if repair_request.dashboard_photo %}
-        <div class="info_row">
-            <div class="info_label">Фото приборной панели</div>
-            <div class="info_value">
-                <img src="{{ repair_request.dashboard_photo.url }}" class="damage_photo" style="max-width: 200px;">
-            </div>
-        </div>
-        {% endif %}
+    <div class="tile" style="grid-column: span 2;">
+        <div class="label">Причина обращения</div>
+        <div class="value" style="font-size: 0.9rem; font-weight: 400;">{{ repair_request.issue_description }}</div>
     </div>
-</div>
 
-<div class="info_section mb_20">
-    <div class="info_section_title">Причина обращения и работы</div>
-    <div class="info_row">
-        <div class="info_label">Причина</div>
-        <div class="info_value">{{ repair_request.issue_description }}</div>
-    </div>
-    <div class="info_row">
-        <div class="info_label">Примечания</div>
-        <div class="info_value">{{ repair_request.notes|default:"-" }}</div>
-    </div>
-    <div class="info_row">
-        <div class="info_label">Типы работ</div>
-        <div class="info_value">
-            <ul class="info_list">
-                {% for wt in repair_request.work_types.all %}
-                <li>{{ wt.name }}</li>
-                {% empty %}
-                <li>Не указаны</li>
-                {% endfor %}
-            </ul>
+    <div class="tile" style="grid-column: span 2;">
+        <div class="label">Типы работ</div>
+        <div class="work_tags">
+            {% for wt in repair_request.work_types.all %}
+                <span class="work_tag">{{ wt.name }}</span>
+            {% empty %}
+                <span class="sub">Не указаны</span>
+            {% endfor %}
         </div>
     </div>
 </div>
 
-<div class="main_card">
-    <div class="main_card_header">Осмотр автомобиля</div>
+<!-- Осмотр -->
+<div class="inspection_card">
+    <div class="inspection_header">
+        <div class="title">Осмотр автомобиля</div>
+        <span class="badge">Кликните по схеме для отметки</span>
+    </div>
     
     {% if repair_request.status == 'active' %}
     <div class="car_inspection_section">
         <div class="view_buttons_panel" id="viewButtons">
-            <button type="button" class="view_btn active" data-view-id="1" data-image="/static/images/auto_front.jpg">Вид спереди</button>
-            <button type="button" class="view_btn" data-view-id="2" data-image="/static/images/auto_back.jpg">Вид сзади</button>
-            <button type="button" class="view_btn" data-view-id="3" data-image="/static/images/auto_left.jpg">Вид слева</button>
-            <button type="button" class="view_btn" data-view-id="4" data-image="/static/images/auto_right.jpg">Вид справа</button>
-            <button type="button" class="view_btn" data-view-id="5" data-image="/static/images/auto_top.jpg">Вид сверху</button>
+            {% for view in car_views %}
+            <button type="button" class="view_btn {% if forloop.first %}active{% endif %}" data-view-id="{{ view.id }}" data-image="{{ view.image_url }}">
+                {{ view.name }}
+            </button>
+            {% endfor %}
         </div>
-        
-        
         <div class="car_image_wrapper">
-            <img id="carImage" class="car_scheme_image" src="/static/images/auto_front.jpg" alt="Схема автомобиля">
+            <img id="carImage" class="car_scheme_image" src="{{ car_views.first.image_url }}" alt="Схема автомобиля">
             <div id="markersContainer" class="markers_container"></div>
         </div>
     </div>
     {% elif repair_request.status == 'draft' %}
-    <div class="text_center" style="padding: 40px;">
-        <p>Осмотр ещё не начат.</p>
-        <p>Нажмите "Начать осмотр" чтобы добавлять отметки повреждений.</p>
+    <div class="text_center" style="padding: 48px; color: var(--text-secondary);">
+        <div style="font-size: 0.95rem;">Осмотр ещё не начат</div>
+        <div style="font-size: 0.8rem; margin-top: 4px;">Нажмите «Начать осмотр» чтобы добавлять отметки</div>
     </div>
     {% else %}
-    <div class="text_center" style="padding: 40px;">
-        <p>Заявка завершена или отменена.</p>
-        <div class="damage_list_wrapper">
-            <h4>Отмеченные повреждения:</h4>
+    <div class="text_center" style="padding: 20px; color: var(--text-secondary); font-size: 0.85rem;">
+        <div>Заявка завершена или отменена</div>
+        {% if damage_markers %}
+        <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 8px;">
             {% for marker in damage_markers %}
-            <div class="damage_list_item">
-                <strong>{{ marker.car_view.name }}</strong>
-                <p>Тип: {{ marker.damage_type.name|default:"Повреждение" }}</p>
-                <p>Описание: {{ marker.description }}</p>
-                {% if marker.photo %}
-                <img src="{{ marker.photo.url }}" class="damage_photo">
-                {% endif %}
-            </div>
-            {% empty %}
-            <p>Нет отметок повреждений</p>
+                <span class="work_tag work_tag_damage">{{ marker.car_view.name }}: {{ marker.damage_type.name|default:"Повр." }}</span>
             {% endfor %}
         </div>
+        {% endif %}
     </div>
     {% endif %}
 </div>
 
-<!-- Модальное окно -->
+<!-- ===== Модальное окно для добавления повреждения ===== -->
 <div id="damageModal" class="modal" style="display: none;">
     <div class="modal_content">
-        <span class="modal_close">&times;</span>
-        <h3>Добавить повреждение</h3>
+        <button class="modal_close" id="modalClose">&times;</button>
+        <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">Добавить повреждение</h3>
         <form id="damageForm">
             <div class="form_field">
                 <label>Тип повреждения</label>
-                <select id="damageType" class="search_field_input" required>
-                    <option value="">Выберите тип...</option>
+                <select id="damageType" required>
+                    <option value="">Выберите...</option>
                     {% for dt in damage_types %}
                     <option value="{{ dt.id }}">{{ dt.name }}</option>
                     {% endfor %}
@@ -171,20 +131,83 @@
             </div>
             <div class="form_field">
                 <label>Описание</label>
-                <textarea id="damageDescription" class="search_field_input" rows="3" placeholder="Опишите повреждение..."></textarea>
+                <textarea id="damageDescription" rows="2" placeholder="Опишите повреждение..."></textarea>
             </div>
             <div class="form_field">
                 <label>Фото</label>
-                <input type="file" id="damagePhoto" accept="image/*" class="search_field_input">
-                <div id="photoPreview" class="photo_preview"></div>
+                <input type="file" id="damagePhoto" accept="image/*">
+                <div id="photoPreview" style="margin-top: 6px;"></div>
             </div>
             <div class="modal_buttons">
-                <button type="button" id="saveDamageBtn" class="btn_success">Сохранить</button>
-                <button type="button" id="cancelDamageBtn" class="btn_secondary">Отмена</button>
+                <button type="button" id="saveDamageBtn" class="btn btn_success">Сохранить</button>
+                <button type="button" id="cancelDamageBtn" class="btn btn_secondary">Отмена</button>
             </div>
         </form>
     </div>
 </div>
+
+<!-- ===== Модальное окно для деталей ===== -->
+<div id="detailModal" class="modal" style="display: none;">
+    <div class="modal_content detail_modal_content">
+        <button class="modal_close" onclick="closeDetailModal()">&times;</button>
+        <div class="detail_modal_title">Детали заявки</div>
+        
+        <div class="detail_grid">
+            <div><div class="label">Клиент</div><div class="value">{{ repair_request.client_name }}</div></div>
+            <div><div class="label">Телефон</div><div class="value">{{ repair_request.client_phone }}</div></div>
+            <div><div class="label">Статус</div><div class="value"><span class="status_badge status_{{ repair_request.status }}">{{ repair_request.get_status_display }}</span></div></div>
+            <div><div class="label">Марка</div><div class="value">{{ repair_request.car_brand }}</div></div>
+            <div><div class="label">Модель</div><div class="value">{{ repair_request.car_model }}</div></div>
+            <div><div class="label">Гос номер</div><div class="value">{{ repair_request.license_plate }}</div></div>
+            <div><div class="label">VIN</div><div class="value">{{ repair_request.vin|default:"-" }}</div></div>
+            <div><div class="label">Пробег</div><div class="value">{{ repair_request.mileage|default:"-" }} км</div></div>
+            <div><div class="label">Дата приёма</div><div class="value">{{ repair_request.reception_date|date:"d.m.Y" }}</div></div>
+            <div style="grid-column: span 3;">
+                <div class="label">Причина обращения</div>
+                <div class="value" style="font-weight: 400;">{{ repair_request.issue_description }}</div>
+            </div>
+            {% if repair_request.notes %}
+            <div style="grid-column: span 3;">
+                <div class="label">Примечания</div>
+                <div class="value" style="font-weight: 400;">{{ repair_request.notes }}</div>
+            </div>
+            {% endif %}
+            <div style="grid-column: span 3;">
+                <div class="label">Типы работ</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+                    {% for wt in repair_request.work_types.all %}
+                        <span class="work_tag">{{ wt.name }}</span>
+                    {% empty %}
+                        <span style="color: var(--text-secondary);">Не указаны</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        {% if repair_request.dashboard_photo %}
+        <div class="detail_section">
+            <div class="label">Фото приборной панели</div>
+            <img src="{{ repair_request.dashboard_photo.url }}" style="max-width: 100%; border-radius: 8px; max-height: 180px; margin-top: 4px;">
+        </div>
+        {% endif %}
+        
+        {% if damage_markers %}
+        <div class="detail_section">
+            <div class="label">Отмеченные повреждения ({{ damage_markers|length }})</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+                {% for marker in damage_markers %}
+                    <span class="work_tag work_tag_damage">{{ marker.car_view.name }}: {{ marker.damage_type.name|default:"Повр." }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="modal_buttons">
+            <button type="button" class="btn btn_secondary" onclick="closeDetailModal()">Закрыть</button>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -192,6 +215,7 @@
     let currentViewId = null;
     let pendingX = null;
     let pendingY = null;
+    let markersData = {};
     
     function getCookie(name) {
         let cookieValue = null;
@@ -213,16 +237,32 @@
         return activeBtn ? activeBtn.getAttribute('data-view-id') : null;
     }
     
-    function filterMarkersByView() {
+    function renderMarkersForCurrentView() {
+        const container = document.getElementById('markersContainer');
+        if (!container) return;
+        container.innerHTML = '';
+        
         const currentView = getCurrentViewId();
-        const markers = document.querySelectorAll('.damage_marker');
+        if (!currentView) return;
+        
+        const markers = markersData[currentView] || [];
         markers.forEach(marker => {
-            const markerView = marker.getAttribute('data-view-id');
-            if (markerView === currentView) {
-                marker.style.display = 'block';
-            } else {
-                marker.style.display = 'none';
-            }
+            var newMarker = document.createElement('div');
+            newMarker.className = 'damage_marker';
+            newMarker.style.left = marker.x + '%';
+            newMarker.style.top = marker.y + '%';
+            newMarker.setAttribute('data-marker-id', marker.id);
+            newMarker.setAttribute('data-view-id', currentView);
+            newMarker.setAttribute('data-x', marker.x);
+            newMarker.setAttribute('data-y', marker.y);
+            newMarker.title = marker.damageType || 'Повреждение';
+            
+            newMarker.addEventListener('click', function(e) {
+                e.stopPropagation();
+                showMarkerDetails(marker.id, marker.damageType, marker.description, marker.photoUrl);
+            });
+            
+            container.appendChild(newMarker);
         });
     }
     
@@ -230,63 +270,54 @@
         const container = document.getElementById('markersContainer');
         if (!container) return;
         container.innerHTML = '';
+        markersData = {};
         
         {% for marker in damage_markers %}
         {% if marker.x is not None and marker.y is not None %}
-        // Используем stringformat и заменяем запятую на точку
         var markerX = '{{ marker.x|stringformat:"s"|cut:"," }}';
         var markerY = '{{ marker.y|stringformat:"s"|cut:"," }}';
+        var viewId = '{{ marker.car_view.id }}';
         
-        var newMarker = document.createElement('div');
-        newMarker.className = 'damage_marker';
-        newMarker.style.left = markerX + '%';
-        newMarker.style.top = markerY + '%';
-        newMarker.setAttribute('data-marker-id', '{{ marker.id }}');
-        newMarker.setAttribute('data-view-id', '{{ marker.car_view.id }}');
-        newMarker.setAttribute('data-x', markerX);
-        newMarker.setAttribute('data-y', markerY);
-        newMarker.title = '{{ marker.damage_type.name|default:"Повреждение" }}';
-        
-        newMarker.addEventListener('click', function(e) {
-            e.stopPropagation();
-            {% if marker.photo %}
-            var photoUrl = '{{ marker.photo.url }}';
-            {% else %}
-            var photoUrl = '';
-            {% endif %}
-            showMarkerDetails({{ marker.id }}, '{{ marker.damage_type.name|default:"" }}', '{{ marker.description|default:""|escapejs }}', photoUrl);
+        if (!markersData[viewId]) markersData[viewId] = [];
+        markersData[viewId].push({
+            id: {{ marker.id }},
+            x: parseFloat(markerX),
+            y: parseFloat(markerY),
+            damageType: '{{ marker.damage_type.name|default:"Повреждение" }}',
+            description: '{{ marker.description|default:""|escapejs }}',
+            photoUrl: {% if marker.photo %}'{{ marker.photo.url }}'{% else %}''{% endif %}
         });
-        
-        container.appendChild(newMarker);
         {% endif %}
         {% endfor %}
         
-        filterMarkersByView();
-}
+        renderMarkersForCurrentView();
+    }
+    
+    function openDetailModal() {
+        document.getElementById('detailModal').style.display = 'flex';
+    }
+    
+    function closeDetailModal() {
+        document.getElementById('detailModal').style.display = 'none';
+    }
     
     function showMarkerDetails(markerId, damageType, description, photoUrl) {
         var photoHtml = '';
         if (photoUrl && photoUrl !== '') {
-            photoHtml = '<div class="form_field"><label>Фото</label><img src="' + photoUrl + '" class="modal_photo"></div>';
+            photoHtml = '<div class="form_field" style="margin-top: 8px;"><label>Фото</label><img src="' + photoUrl + '" style="max-width: 100%; border-radius: 6px; margin-top: 4px;"></div>';
         }
         
         var modalHtml = `
             <div id="markerDetailModal" class="modal" style="display: flex;">
                 <div class="modal_content">
-                    <span class="modal_close" onclick="closeMarkerDetail()">&times;</span>
-                    <h3>Информация о повреждении</h3>
-                    <div class="form_field">
-                        <label>Тип повреждения</label>
-                        <p><strong>${damageType || 'Не указан'}</strong></p>
-                    </div>
-                    <div class="form_field">
-                        <label>Описание</label>
-                        <p>${description || 'Нет описания'}</p>
-                    </div>
+                    <button class="modal_close" onclick="closeMarkerDetail()">&times;</button>
+                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">Информация о повреждении</h3>
+                    <div class="form_field"><label>Тип</label><p style="font-weight: 500;">${damageType || 'Не указан'}</p></div>
+                    <div class="form_field"><label>Описание</label><p>${description || 'Нет описания'}</p></div>
                     ${photoHtml}
                     <div class="modal_buttons">
-                        <button type="button" class="btn_danger" onclick="deleteMarker(${markerId})">Удалить</button>
-                        <button type="button" class="btn_secondary" onclick="closeMarkerDetail()">Закрыть</button>
+                        <button type="button" class="btn btn_danger" onclick="deleteMarker(${markerId})">Удалить</button>
+                        <button type="button" class="btn btn_secondary" onclick="closeMarkerDetail()">Закрыть</button>
                     </div>
                 </div>
             </div>
@@ -320,20 +351,25 @@
         const viewButtons = document.querySelectorAll('.view_btn');
         const carImage = document.getElementById('carImage');
         
+        function switchView(viewId) {
+            currentViewId = viewId;
+            const btn = document.querySelector(`.view_btn[data-view-id="${viewId}"]`);
+            if (btn) {
+                document.querySelectorAll('.view_btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const newImage = btn.getAttribute('data-image');
+                if (newImage) {
+                    carImage.src = newImage;
+                }
+            }
+            renderMarkersForCurrentView();
+        }
+        
         if (viewButtons.length > 0) {
             viewButtons.forEach(button => {
                 button.addEventListener('click', function() {
-                    viewButtons.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    currentViewId = this.getAttribute('data-view-id');
-                    const newImage = this.getAttribute('data-image');
-                    if (newImage) {
-                        carImage.src = newImage;
-                        carImage.onload = function() {
-                            drawMarkers();
-                        };
-                    }
-                    drawMarkers();
+                    const viewId = this.getAttribute('data-view-id');
+                    switchView(viewId);
                 });
             });
             const activeBtn = document.querySelector('.view_btn.active');
@@ -343,7 +379,7 @@
         const modal = document.getElementById('damageModal');
         const saveBtn = document.getElementById('saveDamageBtn');
         const cancelBtn = document.getElementById('cancelDamageBtn');
-        const closeSpan = document.querySelector('.modal_close');
+        const closeSpan = document.getElementById('modalClose');
         
         function openModal() {
             modal.style.display = 'flex';
@@ -444,25 +480,19 @@
                             if (photoResult.success) photoUrl = photoResult.photo_url;
                         }
                         
-                        const container = document.getElementById('markersContainer');
-                        const newMarkerDiv = document.createElement('div');
-                        newMarkerDiv.className = 'damage_marker';
-                        newMarkerDiv.style.left = pendingX + '%';
-                        newMarkerDiv.style.top = pendingY + '%';
-                        newMarkerDiv.setAttribute('data-marker-id', markerResult.marker_id);
-                        newMarkerDiv.setAttribute('data-view-id', currentView);
-                        newMarkerDiv.setAttribute('data-x', pendingX);
-                        newMarkerDiv.setAttribute('data-y', pendingY);
                         const damageTypeText = document.getElementById('damageType').options[document.getElementById('damageType').selectedIndex]?.text || 'Повреждение';
-                        newMarkerDiv.title = damageTypeText;
                         
-                        newMarkerDiv.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            showMarkerDetails(markerResult.marker_id, damageTypeText, description, photoUrl);
+                        if (!markersData[currentView]) markersData[currentView] = [];
+                        markersData[currentView].push({
+                            id: markerResult.marker_id,
+                            x: pendingX,
+                            y: pendingY,
+                            damageType: damageTypeText,
+                            description: description,
+                            photoUrl: photoUrl
                         });
                         
-                        container.appendChild(newMarkerDiv);
-                        filterMarkersByView();
+                        renderMarkersForCurrentView();
                         closeModal();
                     } else {
                         alert('Ошибка: ' + (markerResult.error || 'Не удалось сохранить'));
@@ -474,15 +504,14 @@
             });
         }
         
-        if (carImage) {
-            if (carImage.complete) {
-                drawMarkers();
-            } else {
-                carImage.onload = function() {
-                    drawMarkers();
-                };
+        drawMarkers();
+        
+        window.addEventListener('click', function(e) {
+            const detailModal = document.getElementById('detailModal');
+            if (e.target === detailModal) {
+                closeDetailModal();
             }
-        }
+        });
     });
 </script>
 {% endblock %}

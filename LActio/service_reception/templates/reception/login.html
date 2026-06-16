@@ -1,21 +1,21 @@
 {% extends 'reception/base.html' %}
+{% load static %}
 
 {% block title %}Вход{% endblock %}
 
 {% block content %}
-<div class="form_wrapper">
-    <div class="form_container">
-        <div class="main_card">
-            <div class="main_card_header">Вход</div>
+
+<div class="form_wrapper" style="min-height: 60vh; display: flex; align-items: center;">
+    <div class="form_container" style="max-width: 420px;">
+        <div class="card" style="padding: 32px;">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">Вход</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">Войдите в свой аккаунт</div>
+            </div>
             
             {% if messages %}
                 {% for message in messages %}
-                <div class="form_error" style="margin-bottom: 15px; 
-                    {% if message.tags == 'success' %}background-color: #d4edda; color: #155724;
-                    {% elif message.tags == 'error' %}background-color: #f8d7da; color: #721c24;
-                    {% endif %}">
-                    {{ message }}
-                </div>
+                <div class="alert alert_{{ message.tags }}">{{ message }}</div>
                 {% endfor %}
             {% endif %}
             
@@ -23,18 +23,22 @@
                 {% csrf_token %}
                 <div class="form_field">
                     <label>Имя пользователя</label>
-                    <input type="text" name="username" required class="search_field_input">
+                    <input type="text" name="username" required placeholder="Введите логин">
                 </div>
                 <div class="form_field">
                     <label>Пароль</label>
-                    <input type="password" name="password" required class="search_field_input">
+                    <input type="password" name="password" required placeholder="Введите пароль">
                 </div>
-                <div class="flex_buttons">
-                    <button type="submit" class="btn_success">Войти</button>
-                    <a href="{% url 'service_reception:register' %}" class="btn_secondary">Регистрация</a>
+                {% if form.errors %}
+                <div class="form_error">Неверное имя пользователя или пароль</div>
+                {% endif %}
+                <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+                    <button type="submit" class="btn btn_primary" style="flex: 1;">Войти</button>
+                    <a href="{% url 'service_reception:register' %}" class="btn btn_secondary">Регистрация</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
 {% endblock %}

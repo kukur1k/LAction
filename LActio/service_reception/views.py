@@ -16,44 +16,39 @@ from django.contrib.auth import authenticate, login
 
 
 def home(request):
-    """Главная страница с дашбордом"""
-    
-    if not request.user.is_authenticated:
-        return render(request, 'reception/home.html', {
-            'total_requests': 0,
-            'total_active': 0,
-            'total_completed': 0,
-            'recent_requests': [],
-            'work_types_stats': [],
-        })
-    
-    # Проверка - админ ли пользователь
-    if request.user.is_staff:
-        # Админ видит все заявки
-        requests_list = RepairRequest.objects.all()
+    if request.user.is_authenticated:
+        if request.user.is_staff:
+            # Админ видит ВСЕ заявки + свои отдельно
+            all_requests = RepairRequest.objects.all()
+            my_requests = RepairRequest.objects.filter(receptionist=request.user)
+            
+            total_requests = all_requests.count()
+            total_active = all_requests.filter(status='active').count()
+            total_completed = all_requests.filter(status='completed').count()
+            my_requests_count = my_requests.count()
+            recent_requests = all_requests.order_by('-reception_date')[:5]
+        else:
+            # Обычный пользователь видит ТОЛЬКО свои заявки
+            requests = RepairRequest.objects.filter(receptionist=request.user)
+            
+            total_requests = requests.count()
+            total_active = requests.filter(status='active').count()
+            total_completed = requests.filter(status='completed').count()
+            my_requests_count = total_requests
+            recent_requests = requests.order_by('-reception_date')[:5]
     else:
-        # Обычный пользователь видит только свои заявки
-        requests_list = RepairRequest.objects.filter(receptionist=request.user)
-    
-    total_requests = requests_list.count()
-    total_active = requests_list.filter(status='active').count()
-    total_completed = requests_list.filter(status='completed').count()
-    recent_requests = requests_list.order_by('-reception_date')[:5]
-    
-    # Статистика по типам работ
-    work_types_stats = []
-    for wt in WorkType.objects.all():
-        count = requests_list.filter(work_types=wt).count()
-        if count > 0:
-            work_types_stats.append({'name': wt.name, 'count': count})
+        total_requests = 0
+        total_active = 0
+        total_completed = 0
+        my_requests_count = 0
+        recent_requests = []
     
     context = {
         'total_requests': total_requests,
         'total_active': total_active,
         'total_completed': total_completed,
+        'my_requests_count': my_requests_count,
         'recent_requests': recent_requests,
-        'work_types_stats': work_types_stats,
-        'is_admin': request.user.is_staff,
     }
     
     return render(request, 'reception/home.html', context)

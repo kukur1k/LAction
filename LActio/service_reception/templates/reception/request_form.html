@@ -1,31 +1,41 @@
 {% extends 'reception/base.html' %}
+{% load static %}
 
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
+
+<div class="page_header">
+    <div>
+        <div class="title">{{ title }}</div>
+        <div class="subtitle">Заполните все необходимые поля</div>
+    </div>
+    <div class="actions">
+        <a href="{% url 'service_reception:request_list' %}" class="btn btn_secondary">Назад</a>
+    </div>
+</div>
+
 <div class="form_wrapper">
     <div class="form_container">
-        <div class="main_card">
-            <div class="main_card_header">{{ title }}</div>
+        <div class="card" style="padding: 24px;">
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 {% for field in form %}
                 <div class="form_field">
-                    {{ field.label_tag }}
+                    <label>{{ field.label }}</label>
                     {{ field }}
                     {% if field.errors %}
-                    <div class="form_error">
-                        {{ field.errors }}
-                    </div>
+                    <div class="form_error">{{ field.errors }}</div>
                     {% endif %}
                 </div>
                 {% endfor %}
-                <div class="flex_buttons">
-                    <button type="submit" class="btn_success">Сохранить</button>
-                    <a href="{% url 'service_reception:request_list' %}" class="btn_secondary">Отмена</a>
+                <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+                    <button type="submit" class="btn btn_success">Сохранить</button>
+                    <a href="{% url 'service_reception:request_list' %}" class="btn btn_secondary">Отмена</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
 {% endblock %}
