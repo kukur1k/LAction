@@ -14,7 +14,7 @@
         <div class="main_container">
             <div class="nav_inner">
                 <a class="navbar_brand" href="{% url 'service_reception:home' %}">
-                    <span class="brand_text">СТО <span class="brand_accent">Приёмка</span></span>
+                    <img src="{% static 'images/logoo.png' %}" alt="СТО Приёмка" class="logo_img" style="height: 48px !important; width: auto !important;">
                 </a>
                 <ul class="navbar_menu">
                     <li><a class="navbar_link {% if request.path == '/' %}active{% endif %}" href="{% url 'service_reception:home' %}">Главная</a></li>

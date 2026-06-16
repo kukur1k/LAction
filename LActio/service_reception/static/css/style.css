@@ -1329,3 +1329,181 @@ body {
     border-color: #ef4444;
     background: rgba(239, 68, 68, 0.1);
 }
+
+
+
+
+/* ===== Поля поиска ===== */
+.search_section {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+}
+
+.search_title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-bottom: 14px;
+}
+
+.search_form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.search_field_group {
+    display: flex;
+    flex-direction: column;
+}
+
+.search_field_group_wide {
+    display: flex;
+    flex-direction: column;
+    grid-column: span 2;
+}
+
+.search_field_label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+/* ===== Стили для полей ввода ===== */
+.search_field_input {
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    background: var(--surface);
+    transition: 0.2s;
+    width: 100%;
+    height: 40px;
+}
+
+.search_field_input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+
+.search_field_input::placeholder {
+    color: #94a3b8;
+}
+
+/* Select */
+.search_field_input select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+    cursor: pointer;
+}
+
+/* Date input */
+.search_field_input[type="date"] {
+    min-width: 150px;
+}
+
+/* Textarea */
+.search_field_input textarea {
+    height: auto;
+    min-height: 60px;
+    resize: vertical;
+}
+
+/* ===== Кнопки поиска ===== */
+.search_buttons {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    padding-bottom: 1px;
+}
+
+.search_buttons .btn {
+    padding: 8px 20px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    height: 35px;
+    display: flex;
+    align-items: center;
+}
+
+
+/* ===== Form Control ===== */
+.form-control {
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    background: var(--surface);
+    transition: 0.2s;
+    width: 100%;
+    height: 40px;
+    color: var(--text);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+
+.form-control::placeholder {
+    color: #94a3b8;
+}
+
+/* Select */
+select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cfill='%2364748b'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/fill%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+    cursor: pointer;
+}
+
+/* Textarea */
+textarea.form-control {
+    height: auto;
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* Date input */
+input[type="date"].form-control {
+    min-width: 150px;
+}
+
+/* File input */
+input[type="file"].form-control {
+    padding: 6px 12px;
+    height: auto;
+}
+
+/* Disabled */
+.form-control:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ===== Увеличенный вариант ===== */
+.form-control-lg {
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 1rem;
+    height: 48px;
+}
+
+
+.logo_img {
+    height: 108px;
+    width: auto;
+}
