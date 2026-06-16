@@ -4,56 +4,81 @@
 {% block title %}Заявка {{ repair_request.request_number }}{% endblock %}
 
 {% block content %}
-<div class="flex_between mb_16">
+
+<!-- Хедер -->
+<div class="page_header">
     <div>
-        <h1 class="request_title">Заявка {{ repair_request.request_number }}</h1>
-        <div class="request_meta">
+        <div class="title">Заявка <span class="number">{{ repair_request.request_number }}</span></div>
+        <div class="subtitle">
             <span class="status_badge status_{{ repair_request.status }}">{{ repair_request.get_status_display }}</span>
-            {{ repair_request.reception_date|date:"d.m.Y" }} {{ repair_request.reception_time|time:"H:i" }}
+            <span>{{ repair_request.reception_date|date:"d.m.Y" }} {{ repair_request.reception_time|time:"H:i" }}</span>
+            <span>Пробег: {{ repair_request.mileage|default:"0" }} км</span>
         </div>
     </div>
-    <div class="flex_buttons">
+    <div class="actions">
         {% if repair_request.status == 'draft' %}
             <a href="{% url 'service_reception:start_inspection' repair_request.pk %}" class="btn btn_success">Начать осмотр</a>
         {% elif repair_request.status == 'active' %}
             <a href="{% url 'service_reception:complete_request' repair_request.pk %}" class="btn btn_primary">Завершить</a>
         {% endif %}
         {% if repair_request.status == 'draft' or repair_request.status == 'active' %}
-            <a href="{% url 'service_reception:request_update' repair_request.pk %}" class="btn btn_warning">Ред.</a>
+            <a href="{% url 'service_reception:request_update' repair_request.pk %}" class="btn btn_warning">Редактировать</a>
             <a href="{% url 'service_reception:request_delete' repair_request.pk %}" class="btn btn_danger">Удалить</a>
         {% endif %}
         <a href="{% url 'service_reception:request_list' %}" class="btn btn_secondary">Назад</a>
     </div>
 </div>
 
-<div class="three_cols">
-    <div class="card compact_card">
+<!-- Плитки -->
+<div class="tile_grid">
+    <div class="tile tile_accent">
         <div class="label">Клиент</div>
         <div class="value">{{ repair_request.client_name }}</div>
         <div class="sub">{{ repair_request.client_phone }}</div>
     </div>
-    
-    <div class="card compact_card">
+
+    <div class="tile">
         <div class="label">Автомобиль</div>
-        <div class="value">{{ repair_request.car_brand }} {{ repair_request.car_model }}</div>
-        <div class="sub">{{ repair_request.license_plate }}</div>
+        <div class="value">{{ repair_request.car_brand }}</div>
+        <div class="sub">{{ repair_request.car_model }} · {{ repair_request.license_plate }}</div>
     </div>
 
-    <div class="card detail_trigger" onclick="openDetailModal()">
-        <div class="flex">
-            <div>
-                <div class="label">Подробнее</div>
-                <div class="hint">Нажмите для деталей</div>
-            </div>
+    <div class="tile tile_status">
+        <div class="label">Статус</div>
+        <div><span class="status_badge status_{{ repair_request.status }}">{{ repair_request.get_status_display }}</span></div>
+        <div class="sub">VIN: {{ repair_request.vin|default:"Не указан" }}</div>
+    </div>
+
+    <div class="tile tile_more" onclick="openDetailModal()">
+        <div class="label">Подробнее</div>
+        <div class="value" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 2px;">
+            <span>все данные</span>
             <span class="arrow">→</span>
+        </div>
+    </div>
+
+    <div class="tile" style="grid-column: span 2;">
+        <div class="label">Причина обращения</div>
+        <div class="value" style="font-size: 0.9rem; font-weight: 400;">{{ repair_request.issue_description }}</div>
+    </div>
+
+    <div class="tile" style="grid-column: span 2;">
+        <div class="label">Типы работ</div>
+        <div class="work_tags">
+            {% for wt in repair_request.work_types.all %}
+                <span class="work_tag">{{ wt.name }}</span>
+            {% empty %}
+                <span class="sub">Не указаны</span>
+            {% endfor %}
         </div>
     </div>
 </div>
 
 <!-- Осмотр -->
-<div class="card" style="padding: 12px 16px;">
+<div class="inspection_card">
     <div class="inspection_header">
         <div class="title">Осмотр автомобиля</div>
+        <span class="badge">Кликните по схеме для отметки</span>
     </div>
     
     {% if repair_request.status == 'active' %}
@@ -65,132 +90,124 @@
             </button>
             {% endfor %}
         </div>
-        <div class="car_image_wrapper" style="padding: 0; min-height: 300px; border: none; background: transparent;">
-            <img id="carImage" class="car_scheme_image" src="{{ car_views.first.image_url }}" alt="Схема" style="max-height: 600px; width: 100%;">
+        <div class="car_image_wrapper">
+            <img id="carImage" class="car_scheme_image" src="{{ car_views.first.image_url }}" alt="Схема автомобиля">
             <div id="markersContainer" class="markers_container"></div>
         </div>
     </div>
     {% elif repair_request.status == 'draft' %}
-    <div class="inspection_empty">
-        <div class="main">Осмотр ещё не начат</div>
-        <div class="sub">Нажмите "Начать осмотр" чтобы добавлять отметки</div>
+    <div class="text_center" style="padding: 48px; color: var(--text-secondary);">
+        <div style="font-size: 0.95rem;">Осмотр ещё не начат</div>
+        <div style="font-size: 0.8rem; margin-top: 4px;">Нажмите «Начать осмотр» чтобы добавлять отметки</div>
     </div>
     {% else %}
-    <div class="inspection_completed">
+    <div class="text_center" style="padding: 20px; color: var(--text-secondary); font-size: 0.85rem;">
         <div>Заявка завершена или отменена</div>
-        <div class="marks">
+        {% if damage_markers %}
+        <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 8px;">
             {% for marker in damage_markers %}
-            <span class="mini_badge">
-                <span class="dot"></span>
-                {{ marker.car_view.name }}: {{ marker.damage_type.name|default:"Повр." }}
-                {% if marker.photo %}<img src="{{ marker.photo.url }}" class="damage_photo" style="max-width: 25px;">{% endif %}
-            </span>
-            {% empty %}
-            <span style="color: #aaa;">Нет отметок</span>
+                <span class="work_tag work_tag_damage">{{ marker.car_view.name }}: {{ marker.damage_type.name|default:"Повр." }}</span>
             {% endfor %}
         </div>
+        {% endif %}
     </div>
     {% endif %}
 </div>
 
-<!-- Модальное окно для добавления повреждения -->
+<!-- ===== Модальное окно для добавления повреждения ===== -->
 <div id="damageModal" class="modal" style="display: none;">
-    <div class="modal_content" style="padding: 20px 24px;">
-        <span class="modal_close" id="modalClose">&times;</span>
-        <h3 style="font-size: 1rem; margin-bottom: 12px; color: #1a2332;">Добавить повреждение</h3>
+    <div class="modal_content">
+        <button class="modal_close" id="modalClose">&times;</button>
+        <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">Добавить повреждение</h3>
         <form id="damageForm">
-            <div class="form_field" style="margin-bottom: 10px;">
-                <label style="font-size: 0.75rem;">Тип повреждения</label>
-                <select id="damageType" required style="padding: 5px 10px; font-size: 0.8rem;">
+            <div class="form_field">
+                <label>Тип повреждения</label>
+                <select id="damageType" required>
                     <option value="">Выберите...</option>
                     {% for dt in damage_types %}
                     <option value="{{ dt.id }}">{{ dt.name }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="form_field" style="margin-bottom: 10px;">
-                <label style="font-size: 0.75rem;">Описание</label>
-                <textarea id="damageDescription" rows="2" placeholder="Опишите..." style="padding: 5px 10px; font-size: 0.8rem;"></textarea>
+            <div class="form_field">
+                <label>Описание</label>
+                <textarea id="damageDescription" rows="2" placeholder="Опишите повреждение..."></textarea>
             </div>
-            <div class="form_field" style="margin-bottom: 10px;">
-                <label style="font-size: 0.75rem;">Фото</label>
-                <input type="file" id="damagePhoto" accept="image/*" style="padding: 4px; font-size: 0.8rem;">
-                <div id="photoPreview" style="margin-top: 4px;"></div>
+            <div class="form_field">
+                <label>Фото</label>
+                <input type="file" id="damagePhoto" accept="image/*">
+                <div id="photoPreview" style="margin-top: 6px;"></div>
             </div>
-            <div class="modal_buttons" style="margin-top: 12px;">
-                <button type="button" id="saveDamageBtn" class="btn btn_success" style="padding: 5px 14px; font-size: 0.75rem;">Сохранить</button>
-                <button type="button" id="cancelDamageBtn" class="btn btn_secondary" style="padding: 5px 14px; font-size: 0.75rem;">Отмена</button>
+            <div class="modal_buttons">
+                <button type="button" id="saveDamageBtn" class="btn btn_success">Сохранить</button>
+                <button type="button" id="cancelDamageBtn" class="btn btn_secondary">Отмена</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Модальное окно для деталей -->
+<!-- ===== Модальное окно для деталей ===== -->
 <div id="detailModal" class="modal" style="display: none;">
     <div class="modal_content detail_modal_content">
-        <span class="modal_close" onclick="closeDetailModal()">&times;</span>
-        <h2 class="detail_modal_title">Детали заявки</h2>
+        <button class="modal_close" onclick="closeDetailModal()">&times;</button>
+        <div class="detail_modal_title">Детали заявки</div>
         
         <div class="detail_grid">
-            <div><span class="label">Клиент:</span> {{ repair_request.client_name }}</div>
-            <div><span class="label">Телефон:</span> {{ repair_request.client_phone }}</div>
-            <div><span class="label">Марка:</span> {{ repair_request.car_brand }}</div>
-            <div><span class="label">Модель:</span> {{ repair_request.car_model }}</div>
-            <div><span class="label">Гос номер:</span> {{ repair_request.license_plate }}</div>
-            <div><span class="label">VIN:</span> {{ repair_request.vin|default:"-" }}</div>
-            <div><span class="label">Пробег:</span> {{ repair_request.mileage|default:"-" }} км</div>
-            <div><span class="label">Дата приёма:</span> {{ repair_request.reception_date|date:"d.m.Y" }}</div>
-            <div><span class="label">Время:</span> {{ repair_request.reception_time|time:"H:i" }}</div>
-            <div><span class="label">Статус:</span> <span class="status_badge status_{{ repair_request.status }}">{{ repair_request.get_status_display }}</span></div>
-        </div>
-        
-        <div class="detail_section">
-            <div class="label">Причина обращения</div>
-            <div class="text">{{ repair_request.issue_description }}</div>
-        </div>
-        
-        <div class="detail_section">
-            <div class="label">Примечания</div>
-            <div class="text">{{ repair_request.notes|default:"-" }}</div>
-        </div>
-        
-        <div class="detail_section">
-            <div class="label">Типы работ</div>
-            <div class="text">
-                {% for wt in repair_request.work_types.all %}
-                    <span class="mini_badge">{{ wt.name }}</span>
-                {% empty %}
-                    <span style="color: #aaa;">Не указаны</span>
-                {% endfor %}
+            <div><div class="label">Клиент</div><div class="value">{{ repair_request.client_name }}</div></div>
+            <div><div class="label">Телефон</div><div class="value">{{ repair_request.client_phone }}</div></div>
+            <div><div class="label">Статус</div><div class="value"><span class="status_badge status_{{ repair_request.status }}">{{ repair_request.get_status_display }}</span></div></div>
+            <div><div class="label">Марка</div><div class="value">{{ repair_request.car_brand }}</div></div>
+            <div><div class="label">Модель</div><div class="value">{{ repair_request.car_model }}</div></div>
+            <div><div class="label">Гос номер</div><div class="value">{{ repair_request.license_plate }}</div></div>
+            <div><div class="label">VIN</div><div class="value">{{ repair_request.vin|default:"-" }}</div></div>
+            <div><div class="label">Пробег</div><div class="value">{{ repair_request.mileage|default:"-" }} км</div></div>
+            <div><div class="label">Дата приёма</div><div class="value">{{ repair_request.reception_date|date:"d.m.Y" }}</div></div>
+            <div style="grid-column: span 3;">
+                <div class="label">Причина обращения</div>
+                <div class="value" style="font-weight: 400;">{{ repair_request.issue_description }}</div>
+            </div>
+            {% if repair_request.notes %}
+            <div style="grid-column: span 3;">
+                <div class="label">Примечания</div>
+                <div class="value" style="font-weight: 400;">{{ repair_request.notes }}</div>
+            </div>
+            {% endif %}
+            <div style="grid-column: span 3;">
+                <div class="label">Типы работ</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+                    {% for wt in repair_request.work_types.all %}
+                        <span class="work_tag">{{ wt.name }}</span>
+                    {% empty %}
+                        <span style="color: var(--text-secondary);">Не указаны</span>
+                    {% endfor %}
+                </div>
             </div>
         </div>
         
         {% if repair_request.dashboard_photo %}
         <div class="detail_section">
             <div class="label">Фото приборной панели</div>
-            <img src="{{ repair_request.dashboard_photo.url }}" class="detail_photo">
+            <img src="{{ repair_request.dashboard_photo.url }}" style="max-width: 100%; border-radius: 8px; max-height: 180px; margin-top: 4px;">
         </div>
         {% endif %}
         
         {% if damage_markers %}
-        <div class="detail_marks">
+        <div class="detail_section">
             <div class="label">Отмеченные повреждения ({{ damage_markers|length }})</div>
-            <div class="list">
+            <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
                 {% for marker in damage_markers %}
-                <span class="mini_badge">
-                    <span class="dot"></span>
-                    {{ marker.car_view.name }}: {{ marker.damage_type.name|default:"Повр." }}
-                </span>
+                    <span class="work_tag work_tag_damage">{{ marker.car_view.name }}: {{ marker.damage_type.name|default:"Повр." }}</span>
                 {% endfor %}
             </div>
         </div>
         {% endif %}
         
-        <div class="modal_buttons" style="margin-top: 16px;">
+        <div class="modal_buttons">
             <button type="button" class="btn btn_secondary" onclick="closeDetailModal()">Закрыть</button>
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -287,26 +304,20 @@
     function showMarkerDetails(markerId, damageType, description, photoUrl) {
         var photoHtml = '';
         if (photoUrl && photoUrl !== '') {
-            photoHtml = '<div class="form_field" style="margin-top: 8px;"><label style="font-size: 0.75rem;">Фото</label><img src="' + photoUrl + '" style="max-width: 100%; border-radius: 6px; margin-top: 4px;"></div>';
+            photoHtml = '<div class="form_field" style="margin-top: 8px;"><label>Фото</label><img src="' + photoUrl + '" style="max-width: 100%; border-radius: 6px; margin-top: 4px;"></div>';
         }
         
         var modalHtml = `
             <div id="markerDetailModal" class="modal" style="display: flex;">
-                <div class="modal_content" style="padding: 20px 24px;">
-                    <span class="modal_close" onclick="closeMarkerDetail()">&times;</span>
-                    <h3 style="font-size: 1rem; margin-bottom: 12px; color: #1a2332;">Информация о повреждении</h3>
-                    <div class="form_field" style="margin-bottom: 8px;">
-                        <label style="font-size: 0.75rem; color: #6b7a8f;">Тип</label>
-                        <p style="font-size: 0.85rem; font-weight: 500; margin: 2px 0 0 0;">${damageType || 'Не указан'}</p>
-                    </div>
-                    <div class="form_field" style="margin-bottom: 8px;">
-                        <label style="font-size: 0.75rem; color: #6b7a8f;">Описание</label>
-                        <p style="font-size: 0.85rem; margin: 2px 0 0 0;">${description || 'Нет описания'}</p>
-                    </div>
+                <div class="modal_content">
+                    <button class="modal_close" onclick="closeMarkerDetail()">&times;</button>
+                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">Информация о повреждении</h3>
+                    <div class="form_field"><label>Тип</label><p style="font-weight: 500;">${damageType || 'Не указан'}</p></div>
+                    <div class="form_field"><label>Описание</label><p>${description || 'Нет описания'}</p></div>
                     ${photoHtml}
-                    <div class="modal_buttons" style="margin-top: 12px;">
-                        <button type="button" class="btn btn_danger" style="padding: 5px 14px; font-size: 0.75rem;" onclick="deleteMarker(${markerId})">Удалить</button>
-                        <button type="button" class="btn btn_secondary" style="padding: 5px 14px; font-size: 0.75rem;" onclick="closeMarkerDetail()">Закрыть</button>
+                    <div class="modal_buttons">
+                        <button type="button" class="btn btn_danger" onclick="deleteMarker(${markerId})">Удалить</button>
+                        <button type="button" class="btn btn_secondary" onclick="closeMarkerDetail()">Закрыть</button>
                     </div>
                 </div>
             </div>
@@ -495,7 +506,6 @@
         
         drawMarkers();
         
-        // Закрытие модалки деталей по клику вне
         window.addEventListener('click', function(e) {
             const detailModal = document.getElementById('detailModal');
             if (e.target === detailModal) {
