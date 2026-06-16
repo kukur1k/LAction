@@ -1,12 +1,21 @@
 {% extends 'reception/base.html' %}
+{% load static %}
 
-{% block title %}LActio{% endblock %}
+{% block title %}Главная - СТО Приёмка{% endblock %}
 
 {% block content %}
-<div class="flex_between mb_20">
-    <h1>Панель управления</h1>
+
+<div class="page_header">
+    <div>
+        <div class="title">Панель управления</div>
+        <div class="subtitle">Обзор текущего состояния</div>
+    </div>
+    <div class="actions">
+        <a href="{% url 'service_reception:request_create' %}" class="btn btn_primary">+ Создать заявку</a>
+    </div>
 </div>
 
+<!-- Статистика -->
 <div class="stat_grid">
     <div class="stat_card">
         <div class="stat_card_number">{{ total_requests }}</div>
@@ -20,12 +29,17 @@
         <div class="stat_card_number">{{ total_completed }}</div>
         <div class="stat_card_label">Завершённые</div>
     </div>
+    <div class="stat_card">
+        <div class="stat_card_number">{{ my_requests_count }}</div>
+        <div class="stat_card_label">Мои заявки</div>
+    </div>
 </div>
 
-<div class="two_columns">
-    <div class="main_card">
-        <div class="main_card_header">Последние заявки</div>
-        {% if recent_requests %}
+<!-- Последние заявки -->
+<div class="card">
+    <div class="card_header">Последние заявки</div>
+    {% if recent_requests %}
+    <div class="table_wrapper">
         <table class="data_table">
             <thead>
                 <tr>
@@ -39,30 +53,21 @@
             <tbody>
                 {% for req in recent_requests %}
                 <tr>
-                    <td class="data_table_cell">{{ req.request_number }}</td>
+                    <td class="data_table_cell"><strong>{{ req.request_number }}</strong></td>
                     <td class="data_table_cell">{{ req.client_name }}</td>
                     <td class="data_table_cell">{{ req.car_brand }} {{ req.car_model }}</td>
                     <td class="data_table_cell">{{ req.reception_date|date:"d.m.Y" }}</td>
                     <td class="data_table_cell">
-                        <a href="{% url 'service_reception:request_detail' req.pk %}" class="btn_primary btn_small">Детали</a>
+                        <a href="{% url 'service_reception:request_detail' req.pk %}" class="btn btn_primary btn_small">Открыть</a>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        {% else %}
-        <p class="text_center">Нет заявок</p>
-        {% endif %}
     </div>
-
-    <div>
-        
-
-        <div class="main_card">
-            <div class="main_card_header">Быстрые действия</div>
-            <a href="{% url 'service_reception:request_create' %}" class="btn_success btn_block_mb">+ Новая заявка</a>
-            <a href="{% url 'service_reception:request_list' %}" class="btn_primary btn_block">Все заявки</a>
-        </div>
-    </div>
+    {% else %}
+    <div class="empty_state">Нет заявок</div>
+    {% endif %}
 </div>
+
 {% endblock %}

@@ -1,23 +1,17 @@
 {% extends 'reception/base.html' %}
+{% load static %}
 
 {% block title %}Регистрация{% endblock %}
 
 {% block content %}
-<div class="form_wrapper">
-    <div class="form_container">
-        <div class="main_card">
-            <div class="main_card_header">Регистрация</div>
-            
-            
-            {% if form.errors %}
-            <div class="form_error" style="margin-bottom: 15px; background-color: #f8d7da; color: #721c24;">
-                {% for field, errors in form.errors.items %}
-                    {% for error in errors %}
-                        <p>{{ error }}</p>
-                    {% endfor %}
-                {% endfor %}
+
+<div class="form_wrapper" style="min-height: 60vh; display: flex; align-items: center;">
+    <div class="form_container" style="max-width: 460px;">
+        <div class="card" style="padding: 32px;">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">Регистрация</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">Создайте новый аккаунт</div>
             </div>
-            {% endif %}
             
             <form method="post">
                 {% csrf_token %}
@@ -25,20 +19,18 @@
                 <div class="form_field">
                     <label>{{ field.label }}</label>
                     {{ field }}
-                    {% if field.help_text %}
-                    <small style="color: #666; display: block;">{{ field.help_text }}</small>
-                    {% endif %}
                     {% if field.errors %}
                     <div class="form_error">{{ field.errors }}</div>
                     {% endif %}
                 </div>
                 {% endfor %}
-                <div class="flex_buttons">
-                    <button type="submit" class="btn_success">Зарегистрироваться</button>
-                    <a href="{% url 'service_reception:login' %}" class="btn_secondary">Уже есть аккаунт</a>
+                <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+                    <button type="submit" class="btn btn_success" style="flex: 1;">Зарегистрироваться</button>
+                    <a href="{% url 'service_reception:login' %}" class="btn btn_secondary">Уже есть аккаунт</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
 {% endblock %}

@@ -1,20 +1,35 @@
 {% extends 'reception/base.html' %}
+{% load static %}
 
 {% block title %}Список заявок{% endblock %}
 
 {% block content %}
-<h1 class="mb_20">Список заявок</h1>
 
+<div class="page_header">
+    <div>
+        <div class="title">Заявки</div>
+        <div class="subtitle">Всего: {{ requests_list.count }}</div>
+    </div>
+    <div class="actions">
+        <a href="{% url 'service_reception:request_create' %}" class="btn btn_primary">+ Создать</a>
+    </div>
+</div>
+
+<!-- Поиск -->
 <div class="search_section">
-    <div class="search_title">Параметры поиска</div>
+    <div class="search_title">Фильтры</div>
     <form method="get" class="search_form">
-        <div class="search_field_group_wide">
+        <div class="search_field_group" style="grid-column: span 2;">
             {{ form.search.label_tag }}
             {{ form.search }}
         </div>
         <div class="search_field_group">
             {{ form.status.label_tag }}
             {{ form.status }}
+        </div>
+        <div class="search_field_group">
+            {{ form.work_type.label_tag }}
+            {{ form.work_type }}
         </div>
         <div class="search_field_group">
             {{ form.car_brand.label_tag }}
@@ -36,58 +51,54 @@
             {{ form.date_to.label_tag }}
             {{ form.date_to }}
         </div>
-        <div class="search_field_group">
-            {{ form.work_type.label_tag }}
-            {{ form.work_type }}
-        </div>
         <div class="search_buttons">
-            <button type="submit" class="btn_primary">Найти</button>
-            <a href="{% url 'service_reception:request_list' %}" class="btn_secondary">Сбросить</a>
+            <button type="submit" class="btn btn_primary">Найти</button>
+            <a href="{% url 'service_reception:request_list' %}" class="btn btn_secondary">Сбросить</a>
         </div>
     </form>
 </div>
 
-<div class="main_card">
-    <div class="main_card_header">Результаты ({{ requests_list.count }})</div>
+<!-- Таблица -->
+<div class="card">
+    <div class="card_header">Результаты ({{ requests_list.count }})</div>
     {% if requests_list %}
-    <table class="data_table">
-        <thead>
-            <tr>
-                <th class="data_table_header">Номер</th>
-                <th class="data_table_header">Клиент</th>
-                <th class="data_table_header">Автомобиль</th>
-                <th class="data_table_header">Гос номер</th>
-                <th class="data_table_header">Дата</th>
-                <th class="data_table_header">Статус</th>
-                {% if is_admin %}
+    <div class="table_wrapper">
+        <table class="data_table">
+            <thead>
+                <tr>
+                    <th class="data_table_header">Номер</th>
+                    <th class="data_table_header">Клиент</th>
+                    <th class="data_table_header">Автомобиль</th>
+                    <th class="data_table_header">Гос номер</th>
+                    <th class="data_table_header">Дата</th>
+                    <th class="data_table_header">Статус</th>
                     <th class="data_table_header">Приёмщик</th>
-                {% endif %}
-                <th class="data_table_header"></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for req in requests_list %}
-            <tr>
-                <td class="data_table_cell">{{ req.request_number }}</td>
-                <td class="data_table_cell">{{ req.client_name }}</td>
-                <td class="data_table_cell">{{ req.car_brand }} {{ req.car_model }}</td>
-                <td class="data_table_cell">{{ req.license_plate }}</td>
-                <td class="data_table_cell">{{ req.reception_date|date:"d.m.Y" }}</td>
-                <td class="data_table_cell">
-                    <span class="status_badge status_{{ req.status }}">
-                        {{ req.get_status_display }}
-                    </span>
-                </td>
-                <td class="data_table_cell">{{ req.receptionist.get_full_name|default:req.receptionist.username }}</td>
-                <td class="data_table_cell">
-                    <a href="{% url 'service_reception:request_detail' req.pk %}" class="btn_primary btn_small">Детали</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    <th class="data_table_header"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests_list %}
+                <tr>
+                    <td class="data_table_cell"><strong>{{ req.request_number }}</strong></td>
+                    <td class="data_table_cell">{{ req.client_name }}</td>
+                    <td class="data_table_cell">{{ req.car_brand }} {{ req.car_model }}</td>
+                    <td class="data_table_cell">{{ req.license_plate }}</td>
+                    <td class="data_table_cell">{{ req.reception_date|date:"d.m.Y" }}</td>
+                    <td class="data_table_cell">
+                        <span class="status_badge status_{{ req.status }}">{{ req.get_status_display }}</span>
+                    </td>
+                    <td class="data_table_cell">{{ req.receptionist.get_full_name|default:req.receptionist.username }}</td>
+                    <td class="data_table_cell">
+                        <a href="{% url 'service_reception:request_detail' req.pk %}" class="btn btn_primary btn_small">Открыть</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
-    <p class="text_center">Заявки не найдены</p>
+    <div class="empty_state">Заявки не найдены</div>
     {% endif %}
 </div>
+
 {% endblock %}
