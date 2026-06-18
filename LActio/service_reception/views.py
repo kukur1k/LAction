@@ -442,6 +442,7 @@ def print_request_pdf(request, pk):
         except Exception as e:
             return None
     
+    
     # ===== Заголовок =====
     p.setFont(font_name, 18)
     p.drawString(30*mm, height - 30*mm, "АКТ ПРИЁМКИ АВТОМОБИЛЯ")
