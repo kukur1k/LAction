@@ -12,7 +12,15 @@ ALLOWED_HOSTS = ['localhost',
                  '192.168.9.113',
                  '192.168.9.%',]
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000', 'http://127.0.0.1:3000', 'http://localhost:3000']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000',
+                        'http://127.0.0.1:8000',
+                        'http://127.0.0.1:3000',
+                        'http://localhost:3000',
+                        'http://192.168.9.113:8000',  
+                        'http://192.168.9.113:3000', 
+                        'http://192.168.9.113:8080',  
+                        'http://192.168.9.%:8000',    
+                        'http://192.168.9.%:3000',]
 CSRF_COOKIE_SECURE = False
 CSRF_USE_SESSIONS = False
 

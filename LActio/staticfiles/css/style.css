@@ -1517,9 +1517,9 @@ input[type="file"].form-control {
 
 
 
-/* ===== АДАПТИВНОСТЬ ДЛЯ ТЕЛЕФОНОВ ===== */
+/* ===== АДАПТИВ ДЛЯ ТЕЛЕФОНОВ ===== */
 
-/* Планшеты и маленькие ноутбуки (до 1024px) */
+
 @media (max-width: 1024px) {
     .main_container {
         padding: 16px 20px;
@@ -2209,98 +2209,5 @@ input[type="file"].form-control {
 
     .car_image_wrapper {
         min-height: 200px;
-    }
-}
-
-/* Тёмная тема для телефонов (опционально) */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg: #0f172a;
-        --surface: #1e293b;
-        --text: #f1f5f9;
-        --text-secondary: #94a3b8;
-        --border: #334155;
-        --shadow: 0 1px 3px rgba(0,0,0,0.3);
-    }
-
-    .navbar_custom {
-        background: #0f172a;
-        border-color: #1e293b;
-    }
-
-    .card {
-        background: #1e293b;
-        border-color: #334155;
-    }
-
-    .search_section {
-        background: #1e293b;
-        border-color: #334155;
-    }
-
-    .stat_card {
-        background: #1e293b;
-        border-color: #334155;
-    }
-
-    .tile {
-        background: #1e293b;
-        border-color: #334155;
-    }
-
-    .search_field_input {
-        background: #0f172a;
-        border-color: #334155;
-        color: #f1f5f9;
-    }
-
-    .search_field_input:focus {
-        border-color: #3b82f6;
-    }
-
-    .modal_content {
-        background: #1e293b;
-        border-color: #334155;
-    }
-
-    .data_table_header {
-        background: #0f172a;
-        border-color: #334155;
-    }
-
-    .data_table_cell {
-        border-color: #334155;
-    }
-
-    .data_table tr:hover .data_table_cell {
-        background: #0f172a;
-    }
-
-    .empty_state {
-        color: #94a3b8;
-    }
-
-    .alert_success {
-        background: #064e3b;
-        color: #6ee7b7;
-        border-color: #065f46;
-    }
-
-    .alert_error {
-        background: #7f1d1d;
-        color: #fca5a5;
-        border-color: #991b1b;
-    }
-
-    .alert_warning {
-        background: #78350f;
-        color: #fcd34d;
-        border-color: #92400e;
-    }
-
-    .footer_custom {
-        background: #0f172a;
-        border-color: #1e293b;
-        color: #94a3b8;
     }
 }
