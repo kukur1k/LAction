@@ -1508,8 +1508,18 @@ input[type="file"].form-control {
     width: auto;
 }
 
+/* печать */
 
+.btn_print {
+    background: #1a2332;
+    color: white;
+}
 
+.btn_print:hover {
+    background: #2a3a52;
+    box-shadow: 0 4px 12px rgba(26,35,50,0.3);
+    transform: translateY(-1px);
+}
 
 
 
