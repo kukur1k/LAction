@@ -352,7 +352,7 @@ class RepairRequestSearchForm(forms.Form):
         label='Марка',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Toyota, BMW, Mercedes...'
+            'placeholder': ''
         })
     )
     
@@ -361,7 +361,7 @@ class RepairRequestSearchForm(forms.Form):
         label='Модель',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Camry, X5, S-Class...'
+            'placeholder': ''
         })
     )
     
