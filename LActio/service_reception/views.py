@@ -446,7 +446,7 @@ def print_request_pdf(request, pk):
     
     # ===== Заголовок =====
     p.setFont(font_name, 18)
-    p.drawString(30*mm, height - 30*mm, "АКТ ПРИЁМКИ АВТОМОБИЛЯ")
+    p.drawString(30*mm, height - 30*mm, "-АКТ ПРИЁМКИ АВТОМОБИЛЯ-")
     
     p.setFont(font_name, 14)
     p.drawString(30*mm, height - 45*mm, f"Заявка № {repair_request.request_number}")
