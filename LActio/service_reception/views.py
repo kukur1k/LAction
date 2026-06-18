@@ -10,6 +10,18 @@ from .forms import RepairRequestForm, RepairRequestSearchForm, DamageMarkerForm,
 from .models import RepairRequest, WorkType, DamageMarker, CarView, DamageType, User
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import authenticate, login
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import mm
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.lib import colors
+from PIL import Image
+from django.conf import settings
+import os
+from datetime import datetime
+from django.http import HttpResponse, JsonResponse
 
 
 # ========================================Главная================================
@@ -364,3 +376,224 @@ def delete_marker(request, marker_id):
         marker.delete()
         return JsonResponse({'success': True})
     return JsonResponse({'success': False, 'error': 'Invalid method'})
+
+
+
+"""Printing"""
+@login_required
+def print_request_pdf(request, pk):
+    """PDF печатная форма заявки через reportlab"""
+    repair_request = get_object_or_404(RepairRequest.objects.select_related('receptionist'), pk=pk)
+    damage_markers = repair_request.damage_markers.select_related('car_view', 'damage_type').all()
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="заявка_{repair_request.request_number}.pdf"'
+    
+    # Создание PDF
+    p = canvas.Canvas(response, pagesize=A4)
+    width, height = A4
+    
+    
+      # ===== русский шрифт =====
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    import os
+    
+    font_path = "C:/Windows/Fonts/arial.ttf"
+    
+    try:
+        pdfmetrics.registerFont(TTFont('Arial', font_path))
+        font_name = 'Arial'
+    except:
+        font_name = 'Helvetica'
+    
+    # ===== Функция для вставки фото =====
+    def add_photo(p, image_field, x, y, max_width=80*mm, max_height=60*mm):
+        """Вставить фото в PDF"""
+        if not image_field or not image_field.name:
+            return None
+        
+        try:
+            #путь к файлу
+            img_path = os.path.join(settings.MEDIA_ROOT, image_field.name)
+            
+            if not os.path.exists(img_path):
+                return None
+            
+            #  изображение 
+            img = Image.open(img_path)
+            
+            # Вычисляем размеры
+            img_width, img_height = img.size
+            
+            # Масштабирование
+            scale_x = max_width / img_width
+            scale_y = max_height / img_height
+            scale = min(scale_x, scale_y)
+            
+            new_width = img_width * scale
+            new_height = img_height * scale
+            
+            # Вставляем в PDF
+            img_reader = ImageReader(img)
+            p.drawImage(img_reader, x, y - new_height, width=new_width, height=new_height)
+            
+            return new_height
+        except Exception as e:
+            return None
+    
+    # ===== Заголовок =====
+    p.setFont(font_name, 18)
+    p.drawString(30*mm, height - 30*mm, "АКТ ПРИЁМКИ АВТОМОБИЛЯ")
+    
+    p.setFont(font_name, 14)
+    p.drawString(30*mm, height - 45*mm, f"Заявка № {repair_request.request_number}")
+    
+    # Линия
+    p.line(30*mm, height - 50*mm, 180*mm, height - 50*mm)
+    
+    # ===== Информация о клиенте =====
+    y = height - 65*mm
+    p.setFont(font_name, 12)
+    p.drawString(30*mm, y, "1. ИНФОРМАЦИЯ О КЛИЕНТЕ")
+    y -= 8*mm
+    
+    p.setFont(font_name, 10)
+    p.drawString(30*mm, y, f"Клиент: {repair_request.client_name}")
+    y -= 6*mm
+    p.drawString(30*mm, y, f"Телефон: {repair_request.client_phone}")
+    y -= 6*mm
+    p.drawString(30*mm, y, f"Дата приёма: {repair_request.reception_date.strftime('%d.%m.%Y')}")
+    y -= 6*mm
+    p.drawString(30*mm, y, f"Время: {repair_request.reception_time.strftime('%H:%M')}")
+    y -= 10*mm
+    
+    # ===== Информация об автомобиле =====
+    p.setFont(font_name, 12)
+    p.drawString(30*mm, y, "2. ИНФОРМАЦИЯ ОБ АВТОМОБИЛЕ")
+    y -= 8*mm
+    
+    p.setFont(font_name, 10)
+    p.drawString(30*mm, y, f"Марка: {repair_request.car_brand}")
+    y -= 6*mm
+    p.drawString(30*mm, y, f"Модель: {repair_request.car_model}")
+    y -= 6*mm
+    p.drawString(30*mm, y, f"Гос номер: {repair_request.license_plate}")
+    y -= 6*mm
+    p.drawString(30*mm, y, f"VIN: {repair_request.vin or '-'}")
+    y -= 6*mm
+    p.drawString(30*mm, y, f"Пробег: {repair_request.mileage or '-'} км")
+    y -= 6*mm
+    
+    # Фото приборной панели
+    if repair_request.dashboard_photo:
+        p.drawString(30*mm, y, "Фото приборной панели:")
+        y -= 5*mm
+        add_photo(p, repair_request.dashboard_photo, 30*mm, y, max_width=70*mm, max_height=50*mm)
+        y -= 55*mm
+    
+    y -= 5*mm
+    
+    # ===== Причина обращения =====
+    p.setFont(font_name, 12)
+    p.drawString(30*mm, y, "3. ПРИЧИНА ОБРАЩЕНИЯ")
+    y -= 8*mm
+    
+    p.setFont(font_name, 10)
+    # Переносим длинный текст
+    text = repair_request.issue_description
+    lines = []
+    if len(text) > 60:
+        words = text.split()
+        line = ""
+        for w in words:
+            if len(line + w) < 60:
+                line += w + " "
+            else:
+                lines.append(line.strip())
+                line = w + " "
+        if line:
+            lines.append(line.strip())
+    else:
+        lines = [text]
+    
+    for line in lines:
+        p.drawString(30*mm, y, line)
+        y -= 6*mm
+    
+    if repair_request.notes:
+        p.drawString(30*mm, y, f"Примечания: {repair_request.notes}")
+        y -= 8*mm
+    
+    y -= 5*mm
+    
+    # ===== Типы работ =====
+    p.setFont(font_name, 12)
+    p.drawString(30*mm, y, "4. ТИПЫ РАБОТ")
+    y -= 8*mm
+    
+    p.setFont(font_name, 10)
+    work_types = [wt.name for wt in repair_request.work_types.all()]
+    if work_types:
+        p.drawString(30*mm, y, ", ".join(work_types))
+    else:
+        p.drawString(30*mm, y, "Не указаны")
+    y -= 10*mm
+    
+    # ===== Повреждения =====
+    p.setFont(font_name, 12)
+    p.drawString(30*mm, y, "5. ОТМЕЧЕННЫЕ ПОВРЕЖДЕНИЯ")
+    y -= 8*mm
+    
+    if damage_markers:
+        for marker in damage_markers:
+            p.setFont(font_name, 10)
+            p.drawString(30*mm, y, f"• {marker.car_view.name}")
+            y -= 5*mm
+            p.setFont(font_name, 9)
+            if marker.damage_type:
+                p.drawString(35*mm, y, f"Тип: {marker.damage_type.name}")
+                y -= 4*mm
+            if marker.description:
+                p.drawString(35*mm, y, f"Описание: {marker.description}")
+                y -= 4*mm
+            
+            # Фото повреждения
+            if marker.photo:
+                y -= 2*mm
+                add_photo(p, marker.photo, 35*mm, y, max_width=60*mm, max_height=40*mm)
+                y -= 45*mm
+            
+            y -= 3*mm
+            
+            # Если заканчивается страница
+            if y < 30*mm:
+                p.showPage()
+                y = height - 20*mm
+    else:
+        p.setFont(font_name, 10)
+        p.drawString(30*mm, y, "Повреждений не отмечено")
+        y -= 8*mm
+    
+    # ===== Подписи =====
+    y -= 15*mm
+    if y < 50*mm:
+        p.showPage()
+        y = height - 30*mm
+    
+    p.line(30*mm, y, 80*mm, y)
+    p.setFont(font_name, 9)
+    p.drawString(30*mm, y + 3*mm, f"Приёмщик: {repair_request.receptionist.get_full_name() or repair_request.receptionist.username}")
+    
+    p.line(120*mm, y, 180*mm, y)
+    p.drawString(120*mm, y + 3*mm, f"Дата: {repair_request.reception_date.strftime('%d.%m.%Y')}")
+    
+    # ===== Футер =====
+    p.setFont(font_name, 8)
+    p.drawString(30*mm, 15*mm, f"Документ сформирован {datetime.now().strftime('%d.%m.%Y %H:%M')}")
+    p.drawString(130*mm, 15*mm, "СТО Приёмка")
+    
+    p.showPage()
+    p.save()
+    
+    return response

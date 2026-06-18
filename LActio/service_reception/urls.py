@@ -46,4 +46,6 @@ urlpatterns = [
     path('admin-panel/users/<int:user_id>/remove-staff/', admin_views.admin_user_remove_staff, name='admin_user_remove_staff'),
     path('admin-panel/users/<int:user_id>/toggle-active/', admin_views.admin_user_toggle_active, name='admin_user_toggle_active'),
     path('admin-panel/requests/', admin_views.admin_requests, name='admin_requests'),
+
+    path('requests/<int:pk>/print-pdf/', views.print_request_pdf, name='print_request_pdf'),
 ]
