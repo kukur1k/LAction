@@ -379,6 +379,7 @@ def delete_marker(request, marker_id):
 
 
 
+
 """Printing"""
 @login_required
 def print_request_pdf(request, pk):
