@@ -129,16 +129,17 @@ class UserAdmin(BaseUserAdmin):
  
 @admin.register(RepairRequest)
 class RepairRequestAdmin(admin.ModelAdmin):
-    """Управление заявками"""
     
     list_display = [
         'request_number', 'client_name', 'client_phone', 
         'car_brand', 'car_model', 'license_plate', 
-        'reception_date', 'reception_time', 'status', 'receptionist'
+        'reception_date', 'reception_time', 'status', 
+        'time_spent',
+        'receptionist'
     ]
     list_filter = ['status', 'reception_date', 'receptionist']
     search_fields = ['request_number', 'client_name', 'client_phone', 'license_plate', 'vin']
-    readonly_fields = ['request_number'] 
+    readonly_fields = ['request_number']  # убираем started_at, completed_at, time_spent из readonly
     list_editable = ['status']
     list_per_page = 20
     
@@ -155,6 +156,10 @@ class RepairRequestAdmin(admin.ModelAdmin):
         ('Автомобиль', {
             'fields': ('car_brand', 'car_model', 'license_plate', 'vin', 'mileage')
         }),
+        ('Время выполнения', {
+            'fields': ('started_at', 'completed_at', 'time_spent'),
+            'classes': ('collapse',),
+        }),
         ('Фото', {
             'fields': ('dashboard_photo',),
             'classes': ('collapse',)
@@ -167,12 +172,26 @@ class RepairRequestAdmin(admin.ModelAdmin):
     actions = ['mark_as_active', 'mark_as_completed', 'mark_as_cancelled']
     
     def mark_as_active(self, request, queryset):
-        count = queryset.update(status='active')
+        count = 0
+        for req in queryset:
+            if req.status == 'draft':
+                req.status = 'active'
+                req.started_at = timezone.now()
+                req.save()
+                count += 1
         self.message_user(request, f'{count} заявок переведены в статус "Активна"', messages.SUCCESS)
     mark_as_active.short_description = 'Перевести в статус "Активна"'
     
     def mark_as_completed(self, request, queryset):
-        count = queryset.update(status='completed')
+        count = 0
+        for req in queryset:
+            if req.status == 'active':
+                req.status = 'completed'
+                req.completed_at = timezone.now()
+                if req.started_at:
+                    req.time_spent = req.completed_at - req.started_at
+                req.save()
+                count += 1
         self.message_user(request, f'{count} заявок переведены в статус "Завершена"', messages.SUCCESS)
     mark_as_completed.short_description = 'Перевести в статус "Завершена"'
     

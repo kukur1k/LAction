@@ -22,7 +22,8 @@ from django.conf import settings
 import os
 from datetime import datetime
 from django.http import HttpResponse, JsonResponse
-from django.db.models import Count, Avg, Sum, Q, F
+from django.utils import timezone
+from django.db.models import Count, Avg, Sum, Q, F, Max, Min
 
 
 # ========================================Главная================================
@@ -224,7 +225,11 @@ def complete_request(request, pk):
     if repair_request.status == 'active':
         repair_request.status = 'completed'
         repair_request.completed_at = timezone.now()
+         # общее время работ
+        if repair_request.started_at:
+            repair_request.time_spent = repair_request.completed_at - repair_request.started_at
         repair_request.save()
+        
         messages.success(request, f'Заявка {repair_request.request_number} завершена!')
     else:
         messages.error(request, 'Заявка должна быть в статусе "Активна" для завершения')
@@ -605,22 +610,74 @@ def print_request_pdf(request, pk):
 
 
 
-@login_required
-def reports_receptionists(request):
+
+def format_duration(value):
+    # Форматирует timedelta в строку
+    if not value:
+        return "—"
     
-    # Отчет по приемщикам
-    # Получаем всех приемщиков с их заявками
+    total_seconds = int(value.total_seconds())
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
+    
+    if hours > 0:
+        return f"{hours}ч {minutes}м {seconds}с"
+    elif minutes > 0:
+        return f"{minutes}м {seconds}с"
+    else:
+        return f"{seconds}с"
+
+
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def reports_receptionists(request):
+    """Отчет по приемщикам с детальными заявками"""
+    
+    # Получаем всех приемщиков
     receptionists = User.objects.filter(
         repairrequest__isnull=False
     ).distinct().annotate(
         total_requests=Count('repairrequest'),
         completed_requests=Count('repairrequest', filter=Q(repairrequest__status='completed')),
+        active_requests=Count('repairrequest', filter=Q(repairrequest__status='active')),
         avg_time=Avg('repairrequest__time_spent'),
+        min_time=Min('repairrequest__time_spent'),
+        max_time=Max('repairrequest__time_spent'),
         total_time=Sum('repairrequest__time_spent'),
     )
     
+    # заявки для каждого приемщика
+    receptionist_data = []
+    for r in receptionists:
+        # Заявки приемщика
+        requests = RepairRequest.objects.filter(
+            receptionist=r
+        ).order_by('-reception_date')
+        
+
+        for req in requests:
+            req.time_spent_formatted = format_duration(req.time_spent)
+
+
+        receptionist_data.append({
+            'user': r,
+            'stats': {
+                'total': r.total_requests,
+                'completed': r.completed_requests,
+                'active': r.active_requests,
+                'avg_time': r.avg_time,
+                'min_time': r.min_time,
+                'max_time': r.max_time,
+                'total_time': r.total_time,
+            },
+            'requests': requests,
+        })
+    
     context = {
-        'receptionists': receptionists,
+        'receptionist_data': receptionist_data,
     }
     
     return render(request, 'reception/reports_receptionists.html', context)

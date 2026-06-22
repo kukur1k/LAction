@@ -3,54 +3,78 @@
 {% block title %}Отчет по приемщикам{% endblock %}
 
 {% block content %}
-<div class="page_header">
-    <div>
-        <div class="title">Отчет по приемщикам</div>
-        <div class="subtitle">Время выполнения заявок</div>
-    </div>
-</div>
 
-<table class="report_table">
+<h1>Отчет по приемщикам</h1>
+<p>Время выполнения заявок по каждому сотруднику</p>
+
+<br>
+
+{% for data in receptionist_data %}
+
+<!-- Приемщик -->
+<h2>{{ data.user.get_full_name|default:data.user.username }}</h2>
+
+<!-- Статистика -->
+<p>
+    <strong>Всего заявок:</strong> {{ data.stats.total }} |
+    <strong>Завершено:</strong> {{ data.stats.completed }} |
+    <strong>В работе:</strong> {{ data.stats.active }}
+</p>
+<p>
+    <strong>Среднее время:</strong> 
+    {% if data.stats.avg_time %}{{ data.stats.avg_time|floatformat:0 }} сек{% else %}—{% endif %} |
+    <strong>Минимальное:</strong> 
+    {% if data.stats.min_time %}{{ data.stats.min_time|floatformat:0 }} сек{% else %}—{% endif %} |
+    <strong>Максимальное:</strong> 
+    {% if data.stats.max_time %}{{ data.stats.max_time|floatformat:0 }} сек{% else %}—{% endif %}
+</p>
+
+<!-- Таблица заявок -->
+<table border="1" cellpadding="5" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
     <thead>
-        <tr>
-            <th>Приемщик</th>
-            <th>Всего заявок</th>
-            <th>Завершено</th>
-            <th>Среднее время</th>
-            <th>Общее время</th>
+        <tr style="background: #f0f0f0;">
+            <th>№ заявки</th>
+            <th>Клиент</th>
+            <th>Автомобиль</th>
+            <th>Статус</th>
+            <th>Дата</th>
+            <th>Время выполнения</th>
         </tr>
     </thead>
     <tbody>
-        {% for r in receptionists %}
+        {% for req in data.requests %}
         <tr>
+            <td><a href="{% url 'service_reception:request_detail' req.pk %}">{{ req.request_number }}</a></td>
+            <td>{{ req.client_name }}</td>
+            <td>{{ req.car_brand }} {{ req.car_model }}</td>
+            <td>{{ req.get_status_display }}</td>
+            <td>{{ req.reception_date|date:"d.m.Y" }}</td>
             <td>
-                <strong>{{ r.get_full_name|default:r.username }}</strong>
-            </td>
-            <td>{{ r.total_requests }}</td>
-            <td>{{ r.completed_requests }}</td>
-            <td>
-                {% if r.avg_time %}
-                    {{ r.avg_time|floatformat:0 }} сек
+                {% if req.time_spent %}
+                    {{ req.time_spent_formatted }}
+                {% elif req.status == 'active' %}
+                    В процессе
                 {% else %}
-                    -
-                {% endif %}
-            </td>
-            <td>
-                {% if r.total_time %}
-                    {{ r.total_time|floatformat:0 }} сек
-                {% else %}
-                    -
+                    —
                 {% endif %}
             </td>
         </tr>
         {% empty %}
         <tr>
-            <td colspan="5" style="text-align: center; padding: 40px;">
-                Нет данных
-            </td>
+            <td colspan="6" style="text-align: center;">Нет заявок</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
+<hr>
+
+{% empty %}
+
+<p>Нет данных о приемщиках</p>
+
+{% endfor %}
+
+<a href="{% url 'service_reception:home' %}">← На главную</a>
 
 {% endblock %}
