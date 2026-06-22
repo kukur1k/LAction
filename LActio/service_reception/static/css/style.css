@@ -1582,7 +1582,7 @@ input[type="file"].form-control {
     }
 }
 
-/* Телефоны (до 768px) */
+
 @media (max-width: 768px) {
     .main_container {
         padding: 12px 16px;
@@ -1962,20 +1962,17 @@ input[type="file"].form-control {
         max-width: 30px;
     }
 
-    /* Пустое состояние */
     .empty_state {
         padding: 24px 12px;
         font-size: 0.75rem;
     }
 
-    /* Алерты */
     .alert {
         padding: 8px 12px;
         font-size: 0.75rem;
         margin-bottom: 12px;
     }
 
-    /* Кнопки входа */
     .btn_login,
     .btn_register {
         padding: 4px 12px;
@@ -1984,7 +1981,6 @@ input[type="file"].form-control {
     }
 }
 
-/* Маленькие телефоны (до 480px) */
 @media (max-width: 480px) {
     .main_container {
         padding: 8px 10px;
@@ -2186,7 +2182,6 @@ input[type="file"].form-control {
     }
 }
 
-/* Вертикальная ориентация телефона */
 @media (max-width: 480px) and (orientation: portrait) {
     .navbar_menu {
         justify-content: center;
@@ -2206,7 +2201,7 @@ input[type="file"].form-control {
     }
 }
 
-/* Горизонтальная ориентация телефона */
+
 @media (max-width: 768px) and (orientation: landscape) {
     .navbar_menu {
         flex-wrap: nowrap;
