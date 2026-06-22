@@ -23,7 +23,10 @@
                     
                     {% if user.is_authenticated %}
                         {% if user.is_staff %}
-                        <li><a class="navbar_link {% if '/admin-panel/' in request.path %}active{% endif %}" href="{% url 'service_reception:admin_dashboard' %}">Админ панель</a></li>
+                            <li><a class="navbar_link {% if '/admin-panel/' in request.path %}active{% endif %}" href="{% url 'service_reception:admin_dashboard' %}">Админ панель</a></li>
+                        {% endif %}
+                        {% if user.is_staff %}
+                            <li><a href="{% url 'service_reception:reports_receptionists' %}">Отчеты</a></li>
                         {% endif %}
                         <li class="nav_user">
                             <span class="nav_username">{{ user.get_full_name|default:user.username }}</span>

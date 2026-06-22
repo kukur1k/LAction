@@ -1,0 +1,56 @@
+{% extends 'reception/base.html' %}
+
+{% block title %}Отчет по приемщикам{% endblock %}
+
+{% block content %}
+<div class="page_header">
+    <div>
+        <div class="title">Отчет по приемщикам</div>
+        <div class="subtitle">Время выполнения заявок</div>
+    </div>
+</div>
+
+<table class="report_table">
+    <thead>
+        <tr>
+            <th>Приемщик</th>
+            <th>Всего заявок</th>
+            <th>Завершено</th>
+            <th>Среднее время</th>
+            <th>Общее время</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in receptionists %}
+        <tr>
+            <td>
+                <strong>{{ r.get_full_name|default:r.username }}</strong>
+            </td>
+            <td>{{ r.total_requests }}</td>
+            <td>{{ r.completed_requests }}</td>
+            <td>
+                {% if r.avg_time %}
+                    {{ r.avg_time|floatformat:0 }} сек
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            <td>
+                {% if r.total_time %}
+                    {{ r.total_time|floatformat:0 }} сек
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" style="text-align: center; padding: 40px;">
+                Нет данных
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
