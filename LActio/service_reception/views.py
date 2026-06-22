@@ -613,7 +613,7 @@ def print_request_pdf(request, pk):
 
 
 def format_duration(value):
-    if not value:
+    if not value or value == "—":
         return "—"
     total_seconds = int(value.total_seconds())
     hours = total_seconds // 3600
