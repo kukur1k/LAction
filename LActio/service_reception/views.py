@@ -711,7 +711,7 @@ def reports_receptionists_pdf(request):
         font_name = 'Arial'
     except:
         font_name = 'Helvetica'
-    
+     
     # ===== Заголовок =====
     y = height - 30*mm
     p.setFont(font_name, 16)
