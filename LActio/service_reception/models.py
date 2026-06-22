@@ -128,6 +128,11 @@ class RepairRequest(models.Model):
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
 
+    # для отчетов
+    started_at = models.DateTimeField(null=True, blank=True, verbose_name="Время начала")
+    completed_at = models.DateTimeField(null=True, blank=True, verbose_name="Время завершения")
+    time_spent = models.DurationField(null=True, blank=True, verbose_name="Затраченное время")
+
 
     def save(self, *args, **kwargs):
         if not self.request_number:

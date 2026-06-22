@@ -1,0 +1,84 @@
+{% extends 'reception/base.html' %}
+
+{% block title %}Отчет по приемщикам{% endblock %}
+
+{% block content %}
+
+<h1>Отчет по приемщикам</h1>
+<p>Время выполнения заявок по каждому сотруднику</p>
+
+<a href="{% url 'service_reception:reports_receptionists_pdf' %}" target="_blank" class="btn btn_print">
+    Печать PDF
+</a>
+
+<br>
+
+{% for data in receptionist_data %}
+
+<!-- Приемщик -->
+<h2>{{ data.user.get_full_name|default:data.user.username }}</h2>
+
+<!-- Статистика -->
+<p>
+    <strong>Всего заявок:</strong> {{ data.stats.total }} |
+    <strong>Завершено:</strong> {{ data.stats.completed }} |
+    <strong>В работе:</strong> {{ data.stats.active }}
+</p>
+<p>
+    <strong>Среднее время:</strong> 
+    {% if data.stats.avg_time %}{{ data.stats.avg_time }} {% else %}—{% endif %} |
+    <strong>Минимальное:</strong> 
+    {% if data.stats.min_time %}{{ data.stats.min_time }} {% else %}—{% endif %} |
+    <strong>Максимальное:</strong> 
+    {% if data.stats.max_time %}{{ data.stats.max_time }} {% else %}—{% endif %}
+</p>
+
+<!-- Таблица заявок -->
+<table border="1" cellpadding="5" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+    <thead>
+        <tr style="background: #f0f0f0;">
+            <th>№ заявки</th>
+            <th>Клиент</th>
+            <th>Автомобиль</th>
+            <th>Статус</th>
+            <th>Дата</th>
+            <th>Время выполнения</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for req in data.requests %}
+        <tr>
+            <td><a href="{% url 'service_reception:request_detail' req.pk %}">{{ req.request_number }}</a></td>
+            <td>{{ req.client_name }}</td>
+            <td>{{ req.car_brand }} {{ req.car_model }}</td>
+            <td>{{ req.get_status_display }}</td>
+            <td>{{ req.reception_date|date:"d.m.Y" }}</td>
+            <td>
+                {% if req.time_spent %}
+                    {{ req.time_spent_formatted }}
+                {% elif req.status == 'active' %}
+                    В процессе
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" style="text-align: center;">Нет заявок</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<hr>
+
+{% empty %}
+
+<p>Нет данных о приемщиках</p>
+
+{% endfor %}
+
+<a href="{% url 'service_reception:home' %}" class="btn btn_secondary" style="margin-top: 2rem;">← На главную</a>
+
+{% endblock %}

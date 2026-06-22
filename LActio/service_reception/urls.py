@@ -48,4 +48,8 @@ urlpatterns = [
     path('admin-panel/requests/', admin_views.admin_requests, name='admin_requests'),
 
     path('requests/<int:pk>/print-pdf/', views.print_request_pdf, name='print_request_pdf'),
+
+    # Отчеты
+    path('reports/receptionists/', views.reports_receptionists, name='reports_receptionists'),
+    path('reports/receptionists/pdf/', views.reports_receptionists_pdf, name='reports_receptionists_pdf'),
 ]
