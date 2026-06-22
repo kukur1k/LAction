@@ -24,6 +24,7 @@ from datetime import datetime
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.db.models import Count, Avg, Sum, Q, F, Max, Min
+from django.template.loader import get_template
 
 
 # ========================================Главная================================
@@ -612,17 +613,14 @@ def print_request_pdf(request, pk):
 
 
 def format_duration(value):
-    # Форматирует timedelta в строку
     if not value:
         return "—"
-    
     total_seconds = int(value.total_seconds())
     hours = total_seconds // 3600
     minutes = (total_seconds % 3600) // 60
     seconds = total_seconds % 60
-    
     if hours > 0:
-        return f"{hours}ч {minutes}м {seconds}с"
+        return f"{hours}ч {minutes}м"
     elif minutes > 0:
         return f"{minutes}м {seconds}с"
     else:
@@ -681,3 +679,122 @@ def reports_receptionists(request):
     }
     
     return render(request, 'reception/reports_receptionists.html', context)
+
+
+
+@login_required
+def reports_receptionists_pdf(request):
+    
+    # Получаем данные
+    receptionists = User.objects.filter(
+        repairrequest__isnull=False
+    ).distinct().annotate(
+        total_requests=Count('repairrequest'),
+        completed_requests=Count('repairrequest', filter=Q(repairrequest__status='completed')),
+        active_requests=Count('repairrequest', filter=Q(repairrequest__status='active')),
+        avg_time=Avg('repairrequest__time_spent'),
+        min_time=Min('repairrequest__time_spent'),
+        max_time=Max('repairrequest__time_spent'),
+        total_time=Sum('repairrequest__time_spent'),
+    )
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="otchet_po_priemshikam.pdf"'
+    
+    p = canvas.Canvas(response, pagesize=A4)
+    width, height = A4
+    
+    # Шрифт
+    font_path = "/app/fonts/arialmt.ttf"
+    try:
+        pdfmetrics.registerFont(TTFont('Arial', font_path))
+        font_name = 'Arial'
+    except:
+        font_name = 'Helvetica'
+    
+    # ===== Заголовок =====
+    y = height - 30*mm
+    p.setFont(font_name, 16)
+    p.drawString(30*mm, y, "ОТЧЕТ ПО ПРИЕМЩИКАМ")
+    
+    p.setFont(font_name, 10)
+    p.drawString(30*mm, y - 10*mm, f"Дата: {datetime.now().strftime('%d.%m.%Y %H:%M')}")
+    
+    # ===== Заголовки таблицы =====
+    y -= 25*mm
+    p.setFont(font_name, 10)
+    p.drawString(30*mm, y, "Приемщик")
+    p.drawString(80*mm, y, "Заявок")
+    p.drawString(110*mm, y, "Завершено")
+    p.drawString(140*mm, y, "В работе")
+    p.drawString(170*mm, y, "Среднее")
+    
+    y -= 5*mm
+    p.line(30*mm, y, 210*mm, y)
+    y -= 5*mm
+    
+    # ===== Данные по приемщикам =====
+    if receptionists.exists():
+        p.setFont(font_name, 9)
+        for r in receptionists:
+            if y < 30*mm:
+                p.showPage()
+                y = height - 30*mm
+                p.setFont(font_name, 9)
+            
+            name = r.get_full_name() or r.username
+            avg = format_duration(r.avg_time)
+            total = format_duration(r.total_time)
+            
+            p.drawString(30*mm, y, name[:20])
+            p.drawString(80*mm, y, str(r.total_requests))
+            p.drawString(110*mm, y, str(r.completed_requests))
+            p.drawString(140*mm, y, str(r.active_requests or 0))
+            p.drawString(170*mm, y, avg)
+            
+            y -= 8*mm
+            
+            # ===== Подтаблица с заявками приемщика =====
+            requests = RepairRequest.objects.filter(receptionist=r).order_by('-reception_date')[:10]
+            if requests.exists():
+                p.setFont(font_name, 8)
+                p.drawString(35*mm, y, "Заявки:")
+                y -= 5*mm
+                
+                p.setFont(font_name, 7)
+                p.drawString(35*mm, y, "№")
+                p.drawString(55*mm, y, "Клиент")
+                p.drawString(100*mm, y, "Авто")
+                p.drawString(140*mm, y, "Статус")
+                p.drawString(175*mm, y, "Время")
+                y -= 4*mm
+                
+                p.setFont(font_name, 7)
+                for req in requests:
+                    if y < 30*mm:
+                        p.showPage()
+                        y = height - 30*mm
+                        p.setFont(font_name, 7)
+                    
+                    time_str = format_duration(req.time_spent)
+                    if req.status == 'active':
+                        time_str = "В процессе"
+                    
+                    p.drawString(35*mm, y, req.request_number[:10])
+                    p.drawString(55*mm, y, req.client_name[:15])
+                    p.drawString(100*mm, y, f"{req.car_brand[:10]} {req.car_model[:10]}")
+                    p.drawString(140*mm, y, req.get_status_display())
+                    p.drawString(175*mm, y, time_str)
+                    
+                    y -= 4*mm
+                
+                y -= 3*mm
+                p.setFont(font_name, 9)
+    else:
+        p.setFont(font_name, 12)
+        p.drawString(30*mm, y, "Нет данных о приемщиках")
+    
+    p.showPage()
+    p.save()
+    
+    return response

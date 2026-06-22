@@ -51,4 +51,5 @@ urlpatterns = [
 
     # Отчеты
     path('reports/receptionists/', views.reports_receptionists, name='reports_receptionists'),
+    path('reports/receptionists/pdf/', views.reports_receptionists_pdf, name='reports_receptionists_pdf'),
 ]

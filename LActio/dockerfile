@@ -5,6 +5,7 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
+
 RUN echo "Django==4.2.16" > requirements.txt && \
     echo "gunicorn==21.2.0" >> requirements.txt && \
     echo "Pillow==10.1.0" >> requirements.txt && \

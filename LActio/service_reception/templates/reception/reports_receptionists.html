@@ -7,6 +7,10 @@
 <h1>Отчет по приемщикам</h1>
 <p>Время выполнения заявок по каждому сотруднику</p>
 
+<a href="{% url 'service_reception:reports_receptionists_pdf' %}" target="_blank" class="btn btn_print">
+    Печать PDF
+</a>
+
 <br>
 
 {% for data in receptionist_data %}
