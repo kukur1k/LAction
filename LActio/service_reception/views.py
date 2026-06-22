@@ -22,6 +22,7 @@ from django.conf import settings
 import os
 from datetime import datetime
 from django.http import HttpResponse, JsonResponse
+from django.db.models import Count, Avg, Sum, Q, F
 
 
 # ========================================Главная================================
@@ -208,6 +209,7 @@ def start_inspection(request, pk):
     
     if repair_request.status == 'draft':
         repair_request.status = 'active'
+        repair_request.started_at = timezone.now()
         repair_request.save()
         messages.success(request, 'Осмотр начат!')
     
@@ -221,6 +223,7 @@ def complete_request(request, pk):
     
     if repair_request.status == 'active':
         repair_request.status = 'completed'
+        repair_request.completed_at = timezone.now()
         repair_request.save()
         messages.success(request, f'Заявка {repair_request.request_number} завершена!')
     else:
@@ -599,3 +602,25 @@ def print_request_pdf(request, pk):
     p.save()
     
     return response
+
+
+
+@login_required
+def reports_receptionists(request):
+    
+    # Отчет по приемщикам
+    # Получаем всех приемщиков с их заявками
+    receptionists = User.objects.filter(
+        repairrequest__isnull=False
+    ).distinct().annotate(
+        total_requests=Count('repairrequest'),
+        completed_requests=Count('repairrequest', filter=Q(repairrequest__status='completed')),
+        avg_time=Avg('repairrequest__time_spent'),
+        total_time=Sum('repairrequest__time_spent'),
+    )
+    
+    context = {
+        'receptionists': receptionists,
+    }
+    
+    return render(request, 'reception/reports_receptionists.html', context)
