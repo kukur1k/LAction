@@ -22,6 +22,7 @@ services:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
       - ./db.sqlite3:/app/db.sqlite3
+      - ./fonts:/app/fonts
     depends_on:
       - web
 

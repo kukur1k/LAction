@@ -8,7 +8,8 @@ WORKDIR /app
 RUN echo "Django==4.2.16" > requirements.txt && \
     echo "gunicorn==21.2.0" >> requirements.txt && \
     echo "Pillow==10.1.0" >> requirements.txt && \
-    echo "whitenoise==6.6.0" >> requirements.txt
+    echo "whitenoise==6.6.0" >> requirements.txt && \
+    echo "reportlab==5.0.0" >> requirements.txt
 
 
 RUN pip install --default-timeout=200 --no-cache-dir -r requirements.txt

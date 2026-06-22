@@ -400,7 +400,7 @@ def print_request_pdf(request, pk):
     from reportlab.pdfbase.ttfonts import TTFont
     import os
     
-    font_path = "C:/Windows/Fonts/arial.ttf"
+    font_path = "/app/fonts/arialmt.ttf"
     
     try:
         pdfmetrics.registerFont(TTFont('Arial', font_path))
