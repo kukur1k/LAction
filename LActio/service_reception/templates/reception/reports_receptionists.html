@@ -22,11 +22,11 @@
 </p>
 <p>
     <strong>Среднее время:</strong> 
-    {% if data.stats.avg_time %}{{ data.stats.avg_time|floatformat:0 }} сек{% else %}—{% endif %} |
+    {% if data.stats.avg_time %}{{ data.stats.avg_time }} {% else %}—{% endif %} |
     <strong>Минимальное:</strong> 
-    {% if data.stats.min_time %}{{ data.stats.min_time|floatformat:0 }} сек{% else %}—{% endif %} |
+    {% if data.stats.min_time %}{{ data.stats.min_time }} {% else %}—{% endif %} |
     <strong>Максимальное:</strong> 
-    {% if data.stats.max_time %}{{ data.stats.max_time|floatformat:0 }} сек{% else %}—{% endif %}
+    {% if data.stats.max_time %}{{ data.stats.max_time }} {% else %}—{% endif %}
 </p>
 
 <!-- Таблица заявок -->
@@ -75,6 +75,6 @@
 
 {% endfor %}
 
-<a href="{% url 'service_reception:home' %}">← На главную</a>
+<a href="{% url 'service_reception:home' %}" class="btn btn_secondary" style="margin-top: 2rem;">← На главную</a>
 
 {% endblock %}
