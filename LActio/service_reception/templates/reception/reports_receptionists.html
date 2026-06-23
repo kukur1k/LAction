@@ -48,7 +48,8 @@
     <tbody>
         {% for req in data.requests %}
         <tr>
-            <td><a href="{% url 'service_reception:request_detail' req.pk %}">{{ req.request_number }}</a></td>
+            <td><a href="{% url 'service_reception:request_detail' req.pk %}"
+                style="text-decoration: none; color: black;">{{ req.request_number }}</a></td>
             <td>{{ req.client_name }}</td>
             <td>{{ req.car_brand }} {{ req.car_model }}</td>
             <td>{{ req.get_status_display }}</td>

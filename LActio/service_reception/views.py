@@ -25,6 +25,7 @@ from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.db.models import Count, Avg, Sum, Q, F, Max, Min
 from django.template.loader import get_template
+from reportlab.lib.utils import ImageReader
 
 
 # ========================================Главная================================
@@ -417,26 +418,23 @@ def print_request_pdf(request, pk):
     except:
         font_name = 'Helvetica'
     
-    # ===== Функция для вставки фото =====
+
     def add_photo(p, image_field, x, y, max_width=80*mm, max_height=60*mm):
         """Вставить фото в PDF"""
         if not image_field or not image_field.name:
             return None
         
         try:
-            #путь к файлу
+        
             img_path = os.path.join(settings.MEDIA_ROOT, image_field.name)
             
             if not os.path.exists(img_path):
                 return None
             
-            #  изображение 
             img = Image.open(img_path)
             
-            # Вычисляем размеры
             img_width, img_height = img.size
             
-            # Масштабирование
             scale_x = max_width / img_width
             scale_y = max_height / img_height
             scale = min(scale_x, scale_y)
@@ -444,7 +442,6 @@ def print_request_pdf(request, pk):
             new_width = img_width * scale
             new_height = img_height * scale
             
-            # Вставляем в PDF
             img_reader = ImageReader(img)
             p.drawImage(img_reader, x, y - new_height, width=new_width, height=new_height)
             
@@ -682,6 +679,47 @@ def reports_receptionists(request):
 
 
 
+
+
+
+
+# добавление печати
+def add_stamp(p, width, height):
+    
+    try:
+        p.saveState()
+        
+        stamp_path = "static/images/stamp.png"
+
+        # Шрифт
+        font_path = "/app/fonts/arialmt.ttf"
+        try:
+            pdfmetrics.registerFont(TTFont('Arial', font_path))
+            font_name = 'Arial'
+        except:
+            font_name = 'Helvetica'
+        
+        if os.path.exists(stamp_path):
+            img = ImageReader(stamp_path)
+            stamp_width = 80*mm
+            stamp_height = 40*mm
+            x = (width - stamp_width) / 2
+            y = (height - stamp_height) / 2
+            p.drawImage(img, x, y, width=stamp_width, height=stamp_height, mask='auto')
+        else:
+        #    иначе текстовый
+            p.setFont(font_name, 50)
+            p.setFillColorRGB(0.6, 0.6, 0.6, alpha=0.15)
+            p.translate(width/1.5, height/1.5)
+            p.rotate(-45)
+            p.drawString(-70, 0, "ООО Л-АВТО")
+        
+        p.restoreState()
+    except Exception as e:
+        print(f"Stamp error: {e}")
+        pass
+
+
 @login_required
 def reports_receptionists_pdf(request):
     
@@ -793,7 +831,18 @@ def reports_receptionists_pdf(request):
     else:
         p.setFont(font_name, 12)
         p.drawString(30*mm, y, "Нет данных о приемщиках")
+
+
+        # ===== Подписи =====
+      
+        
+    y -= 5*mm    
+    p.line(120*mm, y, 180*mm, y)
+    p.drawString(120*mm, y + 3*mm, f"Дата: {datetime.now().strftime('%d.%m.%Y')}")
     
+
+    add_stamp(p, width, height)
+
     p.showPage()
     p.save()
     

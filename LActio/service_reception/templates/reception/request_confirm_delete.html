@@ -1,0 +1,40 @@
+{% extends 'reception/base.html' %}
+
+{% block title %}Удаление заявки{% endblock %}
+
+{% block content %}
+
+<div class="delete_wrapper">
+    <div class="delete_container">
+        <div class="form_card">
+
+            <h1 style="
+                text-align: center;
+                margin-bottom: 12px;">Удаление заявки</h1>
+
+            <p style="
+            text-align: center;
+             color: var(--text-secondary);">
+                Вы уверены, что хотите удалить заявку
+                <strong>№ {{ repair_request.request_number }}</strong>?
+            </p>
+
+            <p style="
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 16px;">
+                {{ repair_request.client_name }} · {{ repair_request.car_brand }} {{ repair_request.car_model }}
+            </p>
+
+            <form method="post" class="flex_buttons" style="justify-content: center;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn_danger">Удалить</button>
+                <a href="{% url 'service_reception:request_detail' repair_request.pk %}" class="btn btn_secondary">Отмена</a>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
