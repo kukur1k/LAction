@@ -851,7 +851,7 @@ def reports_receptionists_pdf(request):
 
 
 
-def export_requests_csv(request):
+def export_requests_csv_all(request):
     """экспорт заявок в CSV"""
     
 

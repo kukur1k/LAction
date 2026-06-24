@@ -12,6 +12,10 @@
     </div>
     <div class="actions">
         <a href="{% url 'service_reception:request_create' %}" class="btn btn_primary">+ Создать</a>
+
+        <a href="{% url 'service_reception:export_requests_csv_all' %}" class="btn btn_print" target="_blank">
+            Экспорт CSV (все заявки)
+        </a>
     </div>
 </div>
 

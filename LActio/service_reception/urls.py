@@ -54,5 +54,5 @@ urlpatterns = [
     path('reports/receptionists/pdf/', views.reports_receptionists_pdf, name='reports_receptionists_pdf'),
 
     # CSV
-    path('export/csv/', views.export_requests_csv, name='export_requests_csv'),
+    path('export/csv/', views.export_requests_csv_all, name='export_requests_csv_all'),
 ]
