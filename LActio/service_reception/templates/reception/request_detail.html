@@ -31,8 +31,8 @@
             Печать PDF
         </a>
 
-        <a href="{% url 'service_reception:export_requests_csv_all' %}" class="btn btn_print" target="_blank">
-            Экспорт CSV (все заявки)
+        <a href="{% url 'service_reception:export_request_csv' repair_request.pk %}" class="btn btn_print" target="_blank">
+            Экспорт CSV
         </a>
 
         <a href="{% url 'service_reception:request_list' %}" class="btn btn_secondary">Назад</a>

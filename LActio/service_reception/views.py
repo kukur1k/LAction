@@ -905,7 +905,7 @@ def export_requests_csv_all(request):
     
     return response
 
-def export_requests_csv_all(request, request_id):
+def export_request_csv(request, request_id):
     """экспорт заявки в CSV"""
 
     req = get_object_or_404(RepairRequest, id=request_id)
