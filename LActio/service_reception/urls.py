@@ -54,6 +54,7 @@ urlpatterns = [
     path('reports/receptionists/pdf/', views.reports_receptionists_pdf, name='reports_receptionists_pdf'),
 
     # CSV
-    path('export/csv/', views.export_requests_csv_all, name='export_requests_csv_all'),
     path('export/request/<int:request_id>/csv/', views.export_request_csv, name='export_request_csv'),
+    path('export/csv/', views.export_requests_csv_all, name='export_requests_csv_all'),
+    
 ]
