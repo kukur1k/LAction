@@ -31,6 +31,10 @@
             Печать PDF
         </a>
 
+        <a href="{% url 'service_reception:export_requests_csv' %}" class="btn btn_print" target="_blank">
+            Экспорт CSV
+        </a>
+
         <a href="{% url 'service_reception:request_list' %}" class="btn btn_secondary">Назад</a>
     </div>
 </div>

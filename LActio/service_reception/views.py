@@ -871,14 +871,13 @@ def export_requests_csv(request):
         'Телефон',
         'Марка',
         'Модель',
-        'Год',
         'Госномер',
         'VIN',
         'Пробег',
         'Описание работ',
         'Статус',
         'Приемщик',
-        'Дата завершения',
+        'Время завершения',
         'Время выполнения',
         'Заказ-наряд',
         'Итоговая стоимость'
@@ -893,17 +892,16 @@ def export_requests_csv(request):
             req.client_phone or '',
             req.car_brand,
             req.car_model,
-            str(req.car_year) if req.car_year else '',
-            req.car_license_plate or '',
+            req.license_plate or '',
             getattr(req, 'car_vin', ''),
             getattr(req, 'car_mileage', ''),
-            req.description or '',
+            req.issue_description or '',
             req.get_status_display(),
             req.receptionist.get_full_name() if req.receptionist else '',
-            req.completion_date.strftime('%d.%m.%Y') if req.completion_date else '',
+            str(req.completed_at) if req.completed_at else '',
             str(req.time_spent) if req.time_spent else '',
-            '',  #Заказ-наряд 
-            '',  #Итоговая стоимость
+            '',  # Заказ-наряд 
+            '',  # Итоговая стоимость
         ])
     
     return response
