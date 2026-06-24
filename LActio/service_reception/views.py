@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
+import csv
 from .forms import RepairRequestForm, RepairRequestSearchForm, DamageMarkerForm, CustomUserCreationForm
 from .models import RepairRequest, WorkType, DamageMarker, CarView, DamageType, User
 from django.contrib.auth.decorators import user_passes_test
@@ -629,7 +630,6 @@ def format_duration(value):
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def reports_receptionists(request):
-    """Отчет по приемщикам с детальными заявками"""
     
     # Получаем всех приемщиков
     receptionists = User.objects.filter(
@@ -845,5 +845,65 @@ def reports_receptionists_pdf(request):
 
     p.showPage()
     p.save()
+    
+    return response
+
+
+
+
+def export_requests_csv(request):
+    """экспорт заявок в CSV"""
+    
+
+    requests = RepairRequest.objects.all().select_related('receptionist')
+    
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = (
+        f'attachment; filename=export_{timezone.now().strftime("%Y%m%d_%H%M")}.csv'
+    )
+    
+    writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_ALL)
+    
+    writer.writerow([
+        '№ заявки',
+        'Дата приема',
+        'Клиент',
+        'Телефон',
+        'Марка',
+        'Модель',
+        'Год',
+        'Госномер',
+        'VIN',
+        'Пробег',
+        'Описание работ',
+        'Статус',
+        'Приемщик',
+        'Дата завершения',
+        'Время выполнения',
+        'Заказ-наряд',
+        'Итоговая стоимость'
+    ])
+    
+
+    for req in requests:
+        writer.writerow([
+            req.request_number,
+            req.reception_date.strftime('%d.%m.%Y') if req.reception_date else '',
+            req.client_name,
+            req.client_phone or '',
+            req.car_brand,
+            req.car_model,
+            str(req.car_year) if req.car_year else '',
+            req.car_license_plate or '',
+            getattr(req, 'car_vin', ''),
+            getattr(req, 'car_mileage', ''),
+            req.description or '',
+            req.get_status_display(),
+            req.receptionist.get_full_name() if req.receptionist else '',
+            req.completion_date.strftime('%d.%m.%Y') if req.completion_date else '',
+            str(req.time_spent) if req.time_spent else '',
+            '',  #Заказ-наряд 
+            '',  #Итоговая стоимость
+        ])
     
     return response
