@@ -862,6 +862,7 @@ def export_requests_csv(request):
         f'attachment; filename=export_{timezone.now().strftime("%Y%m%d_%H%M")}.csv'
     )
     
+    response.write('\ufeff')
     writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_ALL)
     
     writer.writerow([
