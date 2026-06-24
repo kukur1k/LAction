@@ -904,3 +904,56 @@ def export_requests_csv_all(request):
         ])
     
     return response
+
+def export_requests_csv_all(request, request_id):
+    """экспорт заявки в CSV"""
+
+    req = get_object_or_404(RepairRequest, id=request_id)
+    
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = (
+        f'attachment; filename=export_{timezone.now().strftime("%Y%m%d_%H%M")}.csv'
+    )
+    
+    response.write('\ufeff')
+    writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_ALL)
+    
+    writer.writerow([
+        '№ заявки',
+        'Дата приема',
+        'Клиент',
+        'Телефон',
+        'Марка',
+        'Модель',
+        'Госномер',
+        'VIN',
+        'Описание проблем',
+        'Статус',
+        'Приемщик',
+        'Время завершения',
+        'Время выполнения',
+        'Заказ-наряд',
+        'Итоговая стоимость'
+    ])
+    
+
+
+    writer.writerow([
+        req.request_number,
+        req.reception_date.strftime('%d.%m.%Y') if req.reception_date else '',
+        req.client_name,
+        req.client_phone or '',
+        req.car_brand,
+        req.car_model,
+        req.license_plate or '',
+        req.vin or '',
+        req.issue_description or '',
+        req.get_status_display(),
+        req.receptionist.get_full_name() if req.receptionist else '',
+        str(req.completed_at) if req.completed_at else '',
+        str(req.time_spent) if req.time_spent else '',
+        '',  # Заказ-наряд 
+        '',  # Итоговая стоимость
+    ])
+    
+    return response
