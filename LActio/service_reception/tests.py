@@ -31,7 +31,6 @@ class CRUDTest(TestCase):
         )
         self.request.work_types.add(self.work_type)
 
-    # CREATE - Создание
     def test_create_request(self):
         # Создание новой заявки
         response = self.client.post('/requests/create/', {
@@ -48,20 +47,17 @@ class CRUDTest(TestCase):
             'reception_time': timezone.now().time(),
         })
         
-        # Проверяем редирект
         self.assertEqual(response.status_code, 302)
         
         # Проверяем, что заявка создалась
         self.assertEqual(RepairRequest.objects.count(), 2)
     
-        # Проверяем данные
         new_request = RepairRequest.objects.last()
         self.assertEqual(new_request.client_name, 'Петров Петр Петрович')
         self.assertEqual(new_request.car_brand, 'BMW')
         self.assertEqual(new_request.car_model, 'X5')
         self.assertEqual(new_request.work_types.count(), 1)
     
-    # READ - Чтение/Просмотр
     def test_read_request_list(self):
         # Просмотр списка заявок
         response = self.client.get('/requests/')
@@ -72,7 +68,7 @@ class CRUDTest(TestCase):
         self.assertContains(response, 'Camry')
     
     def test_read_request_detail(self):
-        # Просмотр одной заявки
+        # Просмотр заявки
         response = self.client.get(f'/requests/{self.request.pk}/')
         
         self.assertEqual(response.status_code, 200)
@@ -81,7 +77,6 @@ class CRUDTest(TestCase):
         self.assertContains(response, 'Camry')
         self.assertContains(response, 'Не заводится')
     
-    # UPDATE - Обновление
     def test_update_request(self):
         # Редактирование заявки
         response = self.client.post(f'/requests/{self.request.pk}/edit/', {
@@ -96,32 +91,26 @@ class CRUDTest(TestCase):
             'reception_time': timezone.now().time(),
         })
         
-        # Проверяем редирект
         self.assertEqual(response.status_code, 302)
         
-        # Обновляем объект из базы
         self.request.refresh_from_db()
         
-        # Проверяем изменения
         self.assertEqual(self.request.client_name, 'Иванов Иван *')
         self.assertEqual(self.request.issue_description, 'Не заводится *')
     
-    # DELETE - Удаление
+
     def test_delete_request(self):
         # Удаление заявки
         self.assertEqual(RepairRequest.objects.count(), 1)
         
         response = self.client.post(f'/requests/{self.request.pk}/delete/')
         
-        # Проверяем редирект
         self.assertEqual(response.status_code, 302)
         
-        # Проверяем, что заявка удалилась
         self.assertEqual(RepairRequest.objects.count(), 0)
     
-    # STATUS CHANGE - Смена статуса
     def test_start_inspection(self):
-        # Начать осмотр (статус draft -> active)
+        # Начать осмотр
         self.client.get(f'/start-inspection/{self.request.pk}/')
         self.request.refresh_from_db()
         
@@ -129,7 +118,7 @@ class CRUDTest(TestCase):
         self.assertIsNotNone(self.request.started_at)
     
     def test_complete_request(self):
-        # Завершить заявку (статус active -> completed)
+        # Завершить заявку
         self.client.get(f'/start-inspection/{self.request.pk}/')
         self.client.get(f'/complete-request/{self.request.pk}/')
         self.request.refresh_from_db()
@@ -138,7 +127,6 @@ class CRUDTest(TestCase):
         self.assertIsNotNone(self.request.completed_at)
         self.assertIsNotNone(self.request.time_spent)
     
-    # SEARCH - Поиск
     def test_search_request_by_name(self):
         # Поиск заявки по имени клиента
         response = self.client.get('/requests/?search=Иванов')
@@ -146,7 +134,7 @@ class CRUDTest(TestCase):
         self.assertContains(response, 'Иванов Иван Иванович')
     
     def test_search_request_by_car(self):
-        # Поиск заявки по марке автомобиля
+        # Поиск заявки по марке
         response = self.client.get('/requests/?search=Toyota')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Toyota')
