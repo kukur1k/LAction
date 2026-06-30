@@ -78,7 +78,7 @@ class User(AbstractUser):
 
 
 class RepairRequest(models.Model):
-    """Заявка на приём автомобиля (минимальная)"""
+    # Заявка на приём автомобиля
     
     STATUS_CHOICES = [
         ('draft', 'Черновик'),
